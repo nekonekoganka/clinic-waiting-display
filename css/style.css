@@ -1,0 +1,716 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
+
+:root {
+    --bg-color: #f0f4f8;
+    --container-bg: white;
+    --header-bg: #4a90e2;
+    --header-border: #357abd;
+    --header-text: white;
+    --border-color: #ddd;
+    --text-color-dark: #34495e;
+    --text-color-light: #6c757d;
+    --card-accent-color: #1a5f9e;
+    --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --tree-high: #ff4444;
+    --tree-medium: #ff8844;
+    --tree-low: #ffdd44;
+    --grass-high: #2d5a5a;
+    --grass-medium: #4d8a8a;
+    --grass-low: #8dd8d8;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Noto Sans JP', 'Hiragino Sans', 'Yu Gothic', sans-serif; background-color: var(--bg-color); height: 100vh; overflow: hidden; }
+.container { width: 100%; height: 100vh; background-color: var(--container-bg); display: flex; flex-direction: column; }
+.table-container { flex-grow: 1; overflow: hidden; padding: 10px 10px 5px 10px; display: flex; align-items: stretch; }
+table { width: 100%; border-collapse: collapse; font-size: clamp(11px, 1.2vw, 16px); table-layout: fixed; }
+
+.header { background-color: var(--header-bg); color: var(--header-text); font-weight: bold; }
+.header th { padding: clamp(4px, 0.8vh, 10px) 2px; text-align: center; border: 1px solid var(--header-border); font-size: clamp(21.6px, 3.6vh, 38.4px); font-weight: bold; vertical-align: middle; white-space: nowrap; }
+.header th:first-child { width: clamp(150px, 15vw, 225px); }
+
+.current-month-column {
+    position: relative;
+    box-shadow: -6px 0 0 0 #ff6b6b inset, 6px 0 0 0 #ff6b6b inset;
+    animation: pulse-border 1.8s infinite ease-in-out;
+}
+
+.header .current-month-column {
+    background-color: var(--tree-high);
+    border-color: #c0392b;
+    animation: pulse-border 1.8s infinite ease-in-out, pulse-header-red 1.8s infinite ease-in-out;
+}
+
+.plant-name { background-color: #f8f9fa; font-weight: bold; padding: clamp(6px, 1vh, 10px) clamp(6px, 0.8vw, 10px); border: 1px solid var(--border-color); width: 100%; height: clamp(40px, 6vh, 55px); vertical-align: middle; font-size: clamp(25.5px, 3.9vh, 31.5px); }
+tbody tr, tbody tr td { height: clamp(40px, 6vh, 55px); }
+td { padding: clamp(3px, 0.5vh, 8px); border: 1px solid var(--border-color); text-align: center; position: relative; vertical-align: middle; }
+
+.tree-high { background-color: var(--tree-high); } .tree-medium { background-color: var(--tree-medium); } .tree-low { background-color: var(--tree-low); }
+.grass-high { background-color: var(--grass-high); } .grass-medium { background-color: var(--grass-medium); } .grass-low { background-color: var(--grass-low); }
+
+.current-month-info { flex-shrink: 0; padding: clamp(15px, 2.5vh, 25px); background: linear-gradient(135deg, #eef7ff 0%, #ffffff 100%); border-top: 4px solid var(--header-bg); display: flex; align-items: stretch; gap: clamp(15px, 2vw, 25px); max-height: 40vh; }
+
+.pollen-info-card { flex: 0 0 35%; background-color: var(--container-bg); padding: clamp(10px, 1.5vh, 20px); border-radius: 12px; box-shadow: var(--card-shadow); display: flex; flex-direction: column; gap: clamp(8px, 1.2vh, 12px); overflow-y: auto; }
+.pollen-info-card h2 { font-size: clamp(20px, 3.2vh, 30px); font-weight: bold; color: var(--card-accent-color); text-align: center; flex-shrink: 0; }
+#pollen-details { display: flex; flex-direction: column; gap: clamp(6px, 1vh, 10px); }
+
+.tips-info-card { flex: 1; background-color: var(--container-bg); padding: clamp(10px, 1.5vh, 20px); border-radius: 12px; box-shadow: var(--card-shadow); display: flex; flex-direction: column; }
+.tips-info-card .tips-title { font-size: clamp(22px, 3.5vh, 28px); font-weight: bold; color: var(--card-accent-color); text-align: center; margin-bottom: clamp(10px, 1.5vh, 15px); }
+.tips-info-card .tips-grid { display: flex; gap: clamp(10px, 1.5vw, 20px); }
+.tips-info-card .tip { flex: 1; text-align: center; background-color: #f8fcff; padding: clamp(10px, 2vh, 20px); border-radius: 8px; border: 1px solid #dbeaf5; }
+.tips-info-card .tip strong { color: var(--card-accent-color); display: block; margin-bottom: 2px; font-size: clamp(24px, 3.9vh, 30px); }
+.tips-info-card .tip p { font-size: clamp(21px, 3.3vh, 27px); line-height: 1.5; color: var(--text-color-dark); font-weight: bold; }
+
+.bottom-area { margin-top: auto; padding-top: 10px; }
+.clinic-message { text-align: center; font-size: clamp(22.5px, 3.6vh, 28.5px); color: #588db9; font-weight: bold; padding: 5px; }
+.source-citation-bottom { text-align: center; font-size: clamp(13.5px, 1.8vh, 16.5px); color: var(--text-color-light); padding-top: 5px; font-weight: bold; }
+
+.pollen-item { display: flex; align-items: center; padding: clamp(8px, 1.2vh, 12px) 150px; background-color: #f8f9fa; border-radius: 8px; border-left: 5px solid; }
+.pollen-item-name { font-weight: bold; font-size: clamp(14px, 2.2vh, 18px); color: var(--text-color-dark); margin-right: auto; }
+.pollen-item-level { font-size: clamp(13px, 2vh, 16px); font-weight: bold; color: var(--text-color-dark); }
+
+.pollen-item.tree-high { border-color: var(--tree-high); } .pollen-item.tree-medium { border-color: var(--tree-medium); } .pollen-item.tree-low { border-color: var(--tree-low); }
+.pollen-item.grass-high { border-color: var(--grass-high); } .pollen-item.grass-medium { border-color: var(--grass-medium); } .pollen-item.grass-low { border-color: var(--grass-low); }
+
+.info-message { text-align: center; font-size: clamp(13px, 2vh, 16px); color: #555; padding: 10px; background-color: #f8f9fa; border-radius: 8px; }
+
+@keyframes pulse-red {
+    0% { background-color: #f8f9fa; box-shadow: none; }
+    50% { background-color: #ffeaea; box-shadow: 0 0 10px rgba(255, 68, 68, 0.7); }
+    100% { background-color: #f8f9fa; box-shadow: none; }
+}
+.pollen-item-high-alert {
+    animation: pulse-red 1.8s infinite ease-in-out;
+}
+
+@keyframes pulse-border {
+    0% { box-shadow: -6px 0 0 0 #ff6b6b inset, 6px 0 0 0 #ff6b6b inset; }
+    50% { box-shadow: -6px 0 0 0 rgba(255, 107, 107, 0.2) inset, 6px 0 0 0 rgba(255, 107, 107, 0.2) inset; }
+    100% { box-shadow: -6px 0 0 0 #ff6b6b inset, 6px 0 0 0 #ff6b6b inset; }
+}
+
+@keyframes pulse-header-red {
+    0% { background-color: var(--tree-high); }
+    50% { background-color: #ff8080; }
+    100% { background-color: var(--tree-high); }
+}
+
+/* ========== フルスクリーンオーバーレイ ========== */
+.fullscreen-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.8s ease, visibility 0.8s ease;
+}
+.fullscreen-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* 花粉注意画面 */
+.pollen-alert-screen {
+    background: linear-gradient(145deg, #fff9e6 0%, #fff3cd 30%, #ffe8a8 100%);
+}
+.pollen-alert-content {
+    text-align: center;
+    padding: 20px;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+.pollen-alert-icon {
+    font-size: clamp(100px, 15vh, 150px);
+    margin-bottom: 10px;
+    animation: float 3s ease-in-out infinite;
+}
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+}
+.pollen-alert-month {
+    font-size: clamp(60px, 10vh, 100px);
+    color: #b8860b;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+.pollen-alert-title {
+    font-size: clamp(70px, 12vh, 120px);
+    color: #d35400;
+    font-weight: bold;
+    margin-bottom: 30px;
+    text-shadow: 3px 3px 6px rgba(0,0,0,0.15);
+}
+.pollen-alert-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 25px;
+    max-width: 95%;
+}
+.pollen-alert-item {
+    background: white;
+    border-radius: 24px;
+    padding: 30px 50px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    transition: transform 0.3s ease;
+}
+.pollen-alert-item:hover {
+    transform: scale(1.05);
+}
+.pollen-alert-item-icon {
+    font-size: clamp(50px, 8vh, 80px);
+}
+.pollen-alert-item-info {
+    text-align: left;
+}
+.pollen-alert-item-name {
+    font-size: clamp(42px, 7vh, 70px);
+    font-weight: bold;
+    color: #333;
+}
+.pollen-alert-item-level {
+    font-size: clamp(32px, 5vh, 50px);
+    font-weight: bold;
+    padding: 8px 20px;
+    border-radius: 12px;
+    display: inline-block;
+    margin-top: 8px;
+}
+.level-high { background: #ffcccc; color: #c0392b; }
+.level-medium { background: #ffe0b3; color: #d35400; }
+.level-low { background: #fff3cd; color: #b8860b; }
+
+/* 対策ポイント画面 */
+.tips-screen {
+    background: linear-gradient(145deg, #e8f5e9 0%, #c8e6c9 30%, #a5d6a7 100%);
+}
+.tips-fullscreen-content {
+    text-align: center;
+    padding: 15px 30px;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+.tips-fullscreen-icon {
+    font-size: clamp(60px, 8vh, 90px);
+    margin-bottom: 5px;
+}
+.tips-fullscreen-title {
+    font-size: clamp(50px, 7vh, 75px);
+    color: #2e7d32;
+    font-weight: bold;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.12);
+}
+.tips-fullscreen-grid {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 15px;
+    width: 90%;
+    max-width: 1400px;
+}
+.tips-fullscreen-card {
+    background: white;
+    border-radius: 20px;
+    padding: 20px 40px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    transition: transform 0.3s ease;
+}
+.tips-fullscreen-card:hover {
+    transform: translateX(10px);
+}
+.tips-card-icon {
+    font-size: clamp(50px, 7vh, 80px);
+    flex-shrink: 0;
+}
+.tips-card-content {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+    flex-grow: 1;
+}
+.tips-card-title {
+    font-size: clamp(36px, 5vh, 55px);
+    color: #1b5e20;
+    font-weight: bold;
+    flex-shrink: 0;
+    min-width: 180px;
+}
+.tips-card-text {
+    font-size: clamp(30px, 4vh, 45px);
+    color: #333;
+    line-height: 1.4;
+    text-align: left;
+}
+.tips-fullscreen-footer {
+    margin-top: 20px;
+    font-size: clamp(32px, 4.5vh, 48px);
+    color: #388e3c;
+    font-weight: bold;
+}
+.tips-fullscreen-footer-icon {
+    font-size: clamp(38px, 5vh, 55px);
+    vertical-align: middle;
+    margin-right: 10px;
+}
+
+/* ========== 画像スライドショー画面 ========== */
+.slideshow-screen {
+    background-color: #ffffff;
+}
+.slideshow-image {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+}
+
+/* ========== 動画CM画面 ========== */
+.video-cm-screen {
+    background-color: #000000;
+}
+.video-cm-player {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+}
+
+/* ========== 時計表示画面 ========== */
+.clock-screen {
+    background-color: #f5f5f5;
+    flex-direction: column;
+}
+.clock-screen.active {
+    display: flex;
+}
+.clock-content {
+    text-align: center;
+    color: #333333;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 40px 20px;
+}
+.clock-date-weekday-section {
+    margin-bottom: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+}
+.clock-date-display {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 15px;
+    line-height: 1;
+}
+.clock-date-display .number {
+    font-size: clamp(150px, 22vh, 240px);
+    font-weight: 700;
+    margin-left: 0.2em;
+}
+.clock-date-display ruby {
+    display: inline-flex;
+    flex-direction: column-reverse;
+    font-size: clamp(75px, 11vh, 120px);
+    font-weight: 700;
+}
+.clock-date-display rt {
+    font-size: clamp(50px, 7vh, 80px);
+    font-weight: 400;
+    letter-spacing: 2px;
+}
+.clock-weekday-section {
+    line-height: 1.2;
+}
+.clock-weekday-ruby {
+    font-size: clamp(50px, 7vh, 80px);
+    font-weight: 400;
+    margin-bottom: 5px;
+    letter-spacing: 8px;
+}
+.clock-weekday-main {
+    font-size: clamp(100px, 14vh, 160px);
+    font-weight: 700;
+    letter-spacing: 4px;
+}
+.clock-time-section {
+    margin-bottom: 20px;
+}
+.clock-time-display {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 15px;
+    line-height: 1;
+}
+.clock-time-display .number {
+    font-size: clamp(120px, 17vh, 190px);
+    font-weight: 700;
+    margin-left: 0.2em;
+}
+.clock-time-display ruby {
+    display: inline-flex;
+    flex-direction: column-reverse;
+    font-size: clamp(60px, 8.5vh, 95px);
+    font-weight: 700;
+}
+.clock-time-display rt {
+    font-size: clamp(30px, 4.2vh, 48px);
+    font-weight: 400;
+    letter-spacing: 2px;
+    text-align: center;
+    display: block;
+}
+.clock-time-display .seconds-number {
+    font-size: clamp(80px, 11vh, 130px);
+    font-weight: 700;
+    margin-left: 0.2em;
+}
+.clock-time-display .seconds-kanji {
+    display: inline-flex;
+    flex-direction: column-reverse;
+    font-size: clamp(40px, 5.6vh, 65px);
+    font-weight: 700;
+}
+.clock-time-display .seconds-kanji rt {
+    font-size: clamp(20px, 2.8vh, 32px);
+    font-weight: 400;
+    letter-spacing: 2px;
+    text-align: center;
+    display: block;
+}
+.clock-logo-section {
+    padding: 10px 20px 30px 20px;
+    text-align: center;
+}
+.clock-logo-section img {
+    max-width: 95%;
+    width: 95%;
+    height: auto;
+    object-fit: contain;
+    transform: scale(0.855);
+    box-shadow: 5px 5px 10px rgba(0,0,0,0.3);
+}
+
+/* ========== ロゴアニメーション画面 ========== */
+.logo-animation-screen {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+}
+.logo-animation-screen.active {
+    display: flex;
+}
+.logo-animation-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+#particleCanvas {
+    max-width: 95vw;
+    max-height: 95vh;
+    width: auto;
+    height: auto;
+}
+
+/* ========== 天気予報画面 ========== */
+.weather-screen {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #4a90e2 100%);
+    transition: background 0.5s ease;
+}
+/* 朝（5-10時）: 日の出（濃いめのオレンジ〜青） */
+.weather-screen.time-morning {
+    background: linear-gradient(135deg, #d35400 0%, #e67e22 30%, #3498db 100%);
+}
+/* 昼（10-16時）: 晴れ渡る青空 */
+.weather-screen.time-noon {
+    background: linear-gradient(135deg, #2980b9 0%, #3498db 50%, #5dade2 100%);
+}
+/* 夕方（16-19時）: 夕焼け（濃いめのオレンジ〜紫） */
+.weather-screen.time-evening {
+    background: linear-gradient(135deg, #c0392b 0%, #d35400 40%, #8e44ad 100%);
+}
+/* 夜（19-5時）: 夜空 */
+.weather-screen.time-night {
+    background: linear-gradient(135deg, #0c1445 0%, #1a237e 50%, #283593 100%);
+}
+.weather-screen.active {
+    display: flex;
+}
+.weather-content {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+    color: white;
+}
+.weather-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+.weather-location {
+    font-size: clamp(36px, 5vh, 50px);
+    font-weight: bold;
+    margin-bottom: 10px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+.weather-update-time {
+    font-size: clamp(18px, 2.5vh, 24px);
+    opacity: 0.9;
+}
+.weather-cards {
+    display: flex;
+    justify-content: center;
+    gap: clamp(15px, 2vw, 40px);
+    width: 100%;
+    max-width: 1800px;
+    flex-wrap: wrap;
+}
+.weather-card {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    border-radius: 24px;
+    padding: clamp(20px, 3vh, 40px) clamp(25px, 3vw, 50px);
+    text-align: center;
+    flex: 1 1 280px;
+    max-width: 380px;
+    min-width: 280px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    border: 1px solid rgba(255,255,255,0.2);
+}
+.weather-card-date {
+    font-size: clamp(28px, 4vh, 40px);
+    font-weight: bold;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid rgba(255,255,255,0.3);
+}
+.weather-card-icon {
+    font-size: clamp(80px, 12vh, 140px);
+    margin: 20px 0;
+    filter: drop-shadow(3px 3px 5px rgba(0,0,0,0.3));
+}
+.weather-card-text {
+    font-size: clamp(24px, 3.5vh, 36px);
+    font-weight: bold;
+    margin-bottom: 25px;
+    min-height: 2.5em;
+    line-height: 1.3;
+}
+.weather-card-temps {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-bottom: 20px;
+}
+.weather-temp {
+    font-size: clamp(28px, 4vh, 42px);
+    font-weight: bold;
+}
+.weather-temp-high {
+    color: #ffcccc;
+}
+.weather-temp-low {
+    color: #cce5ff;
+}
+.weather-temp-label {
+    font-size: clamp(14px, 2vh, 18px);
+    opacity: 0.8;
+}
+.weather-card-rain {
+    font-size: clamp(22px, 3vh, 30px);
+    background: rgba(255,255,255,0.2);
+    padding: 10px 20px;
+    border-radius: 12px;
+    display: inline-block;
+}
+.weather-card-rain-icon {
+    margin-right: 8px;
+}
+.weather-loading {
+    font-size: clamp(32px, 5vh, 48px);
+    text-align: center;
+}
+.weather-source {
+    margin-top: 40px;
+    font-size: clamp(16px, 2vh, 20px);
+    opacity: 0.7;
+}
+
+/* ========== ファミコン風ロゴ画面 ========== */
+.famicom-logo-screen {
+    background: #000000;
+}
+.famicom-logo-screen.active {
+    display: flex;
+}
+.famicom-logo-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+#famicomCanvas {
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+}
+
+/* ========== ビリヤードロゴアニメーション画面 ========== */
+.billiard-screen {
+    background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%);
+}
+.billiard-screen.active {
+    display: flex;
+}
+.billiard-container {
+    position: relative;
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
+}
+.billiard-ball {
+    position: absolute;
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: transparent;
+    border: none;
+    font-size: 158px;
+    font-weight: bold;
+    color: #ffffff;
+    transform: translate(-50%, -50%);
+    font-family: 'Hiragino Kaku Gothic Pro', 'メイリオ', sans-serif;
+}
+.billiard-cue-ball {
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    background: #ffffff;
+    border-radius: 50%;
+    box-shadow: 4px 4px 15px rgba(0,0,0,0.5);
+    transform: translate(-50%, -50%);
+}
+.billiard-cue-stick {
+    position: absolute;
+    width: 400px;
+    height: 16px;
+    background: linear-gradient(90deg, #2a2a2a 0%, #4a4a4a 50%, #6a6a6a 100%);
+    border-radius: 8px;
+    transform-origin: right center;
+    opacity: 0;
+    box-shadow: 4px 4px 10px rgba(0,0,0,0.5);
+}
+.billiard-impact {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,255,255,0.9) 0%, transparent 70%);
+    opacity: 0;
+    pointer-events: none;
+}
+.billiard-impact.show {
+    animation: billiardImpactFlash 0.3s ease-out forwards;
+}
+@keyframes billiardImpactFlash {
+    0% { opacity: 1; transform: scale(0.5); }
+    100% { opacity: 0; transform: scale(2.5); }
+}
+.billiard-shine-line {
+    position: absolute;
+    top: 390px;
+    left: -200px;
+    width: 150px;
+    height: 300px;
+    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.1) 20%, rgba(255,255,255,0.8) 50%, rgba(255,255,255,0.1) 80%, transparent 100%);
+    transform: skewX(-20deg);
+    opacity: 0;
+    pointer-events: none;
+}
+.billiard-shine-line.animate {
+    animation: billiardShinePass 0.8s ease-in-out forwards;
+}
+@keyframes billiardShinePass {
+    0% { left: 0px; opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { left: 1920px; opacity: 0; }
+}
+.billiard-sparkle {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    opacity: 0;
+    pointer-events: none;
+}
+.billiard-sparkle::before,
+.billiard-sparkle::after {
+    content: '';
+    position: absolute;
+    background: #ffffff;
+}
+.billiard-sparkle::before {
+    top: 50%;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    transform: translateY(-50%);
+    border-radius: 2px;
+}
+.billiard-sparkle::after {
+    left: 50%;
+    top: 0;
+    width: 4px;
+    height: 100%;
+    transform: translateX(-50%);
+    border-radius: 2px;
+}
+.billiard-sparkle.animate {
+    animation: billiardSparkleFlash 0.6s ease-out forwards;
+}
+@keyframes billiardSparkleFlash {
+    0% { opacity: 0; transform: scale(0) rotate(0deg); }
+    50% { opacity: 1; transform: scale(1.2) rotate(15deg); }
+    100% { opacity: 0; transform: scale(0.5) rotate(30deg); }
+}
+.billiard-sparkle-small {
+    width: 25px;
+    height: 25px;
+}
+.billiard-sparkle-small::before { height: 2px; }
+.billiard-sparkle-small::after { width: 2px; }
