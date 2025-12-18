@@ -295,6 +295,18 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.15);
         }
 
+        /* ========== 動画CM画面 ========== */
+        .video-cm-screen {
+            background-color: #000000;
+        }
+        .video-cm-player {
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+        }
+
         /* ========== 時計表示画面 ========== */
         .clock-screen {
             background-color: #f5f5f5;
@@ -800,6 +812,13 @@
         <img src="" alt="スライドショー画像" class="slideshow-image" id="slideshow-image" onerror="this.style.display='none';" onload="this.style.display='block';">
     </div>
 
+    <!-- 動画CM画面 -->
+    <div class="fullscreen-overlay video-cm-screen" id="video-cm-screen">
+        <video id="video-cm-player" class="video-cm-player" muted playsinline>
+            <source src="" type="video/mp4">
+        </video>
+    </div>
+
     <!-- ビリヤードロゴアニメーション画面 -->
     <div class="fullscreen-overlay billiard-screen" id="billiard-screen">
         <div class="billiard-container">
@@ -1240,11 +1259,24 @@
                         // N枚ごとにCMを挿入（最後の画像の後は挿入しない）
                         if ((index + 1) % cmInterval === 0 && index < slideshowScreens.length - 1 && cmAnimations.length > 0) {
                             const cm = cmAnimations[cmIndex % cmAnimations.length];
-                            contentScreens.push({
-                                id: cm.id,
-                                duration: cm.duration * 1000,
-                                isCM: true
-                            });
+
+                            // CMタイプに応じて画面データを作成
+                            if (cm.type === 'video' && cm.src) {
+                                // 動画CM
+                                contentScreens.push({
+                                    id: 'video-cm-screen',
+                                    duration: cm.duration * 1000,
+                                    videoSrc: cm.src,
+                                    isCM: true
+                                });
+                            } else {
+                                // HTMLアニメーションCM
+                                contentScreens.push({
+                                    id: cm.id,
+                                    duration: cm.duration * 1000,
+                                    isCM: true
+                                });
+                            }
                             cmIndex++;
                         }
                     });
@@ -1284,26 +1316,37 @@
                         stopParticleAnimation();
                         stopBilliardAnimation();
                         stopFamicomAnimation();
+                        stopVideoCM();
+                    } else if (screens[index].id === 'video-cm-screen' && screens[index].videoSrc) {
+                        // 動画CM画面
+                        stopParticleAnimation();
+                        stopBilliardAnimation();
+                        stopFamicomAnimation();
+                        startVideoCM(screens[index].videoSrc);
                     } else if (screens[index].id === 'logo-animation-screen') {
                         // ロゴアニメーション画面
                         startParticleAnimation();
                         stopBilliardAnimation();
                         stopFamicomAnimation();
+                        stopVideoCM();
                     } else if (screens[index].id === 'billiard-screen') {
                         // ビリヤードアニメーション画面
                         stopParticleAnimation();
                         startBilliardAnimation();
                         stopFamicomAnimation();
+                        stopVideoCM();
                     } else if (screens[index].id === 'famicom-logo-screen') {
                         // ファミコン風ロゴ画面
                         stopParticleAnimation();
                         stopBilliardAnimation();
                         startFamicomAnimation();
+                        stopVideoCM();
                     } else if (screens[index].id === 'weather-screen') {
                         // 天気予報画面
                         stopParticleAnimation();
                         stopBilliardAnimation();
                         stopFamicomAnimation();
+                        stopVideoCM();
                         updateWeatherScreenBackground(); // 時間帯に応じた背景に変更
                         fetchWeatherData();
                     } else {
@@ -1311,12 +1354,14 @@
                         stopParticleAnimation();
                         stopBilliardAnimation();
                         stopFamicomAnimation();
+                        stopVideoCM();
                     }
                 } else {
                     // メイン画面の場合もアニメーションを停止
                     stopParticleAnimation();
                     stopBilliardAnimation();
                     stopFamicomAnimation();
+                    stopVideoCM();
                 }
             }
 
@@ -2170,7 +2215,36 @@
                 }
                 isFamicomAnimating = false;
             }
-            
+
+            // ========== 動画CM機能 ==========
+            const videoCMPlayer = document.getElementById('video-cm-player');
+            let isVideoCMPlaying = false;
+
+            function startVideoCM(src) {
+                if (!videoCMPlayer || !src) return;
+
+                // 動画ソースを設定
+                videoCMPlayer.src = src;
+                videoCMPlayer.load();
+
+                // 再生開始
+                videoCMPlayer.play().then(() => {
+                    isVideoCMPlaying = true;
+                    console.log('動画CM再生開始:', src);
+                }).catch(error => {
+                    console.log('動画CM再生エラー:', error);
+                    isVideoCMPlaying = false;
+                });
+            }
+
+            function stopVideoCM() {
+                if (!videoCMPlayer) return;
+
+                videoCMPlayer.pause();
+                videoCMPlayer.currentTime = 0;
+                isVideoCMPlaying = false;
+            }
+
             // ファミコンロゴ初期化
             initFamicom();
 

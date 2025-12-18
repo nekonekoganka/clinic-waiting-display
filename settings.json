@@ -34,11 +34,20 @@
         "type": "animation",
         "duration": 15,
         "enabled": true
+      },
+      {
+        "id": "video-cm-1",
+        "name": "サンプル動画CM",
+        "type": "video",
+        "src": "cm/videos/sample.mp4",
+        "duration": 30,
+        "enabled": false
       }
     ]
   },
   "_comment": {
     "interval": "スライドショー画像N枚ごとにCMを1つ挿入（2 = 2枚ごと）",
-    "type": "animation = HTML内蔵アニメーション、video = MP4動画（Phase2で対応予定）"
+    "type_animation": "animation = HTML内蔵アニメーション（id でHTMLのscreen IDを指定）",
+    "type_video": "video = MP4動画（src でファイルパスを指定）"
   }
 }
