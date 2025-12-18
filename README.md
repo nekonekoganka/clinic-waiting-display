@@ -53,8 +53,8 @@
    ```
 
 3. **設定ファイルを更新**
-   - **Windows**: `update-images.bat` をダブルクリック
-   - **Mac/Linux**: ターミナルで `./update-images.sh` を実行
+   - **Windows**: `画像リスト更新_Windows用.bat` をダブルクリック
+   - **Chromebook**: ターミナルで `./画像リスト更新_Chromebook用.sh` を実行
 
 4. **HTMLを開く**
    - 新しい画像がスライドショーに追加されます
@@ -86,8 +86,8 @@
 clinic-waiting-display/
 ├── 待合室患者情報提供ディスプレイ.html  # メインファイル
 ├── ふじみ野ひかり眼科_ロゴ_高画質.png    # 時計画面用ロゴ
-├── update-images.bat                      # Windows用スクリプト
-├── update-images.sh                       # Mac/Linux用スクリプト
+├── 画像リスト更新_Windows用.bat           # Windows用スクリプト
+├── 画像リスト更新_Chromebook用.sh         # Chromebook用スクリプト
 ├── images/                                # スライドショー画像フォルダ
 │   ├── config.json                        # 自動生成される設定ファイル
 │   ├── 1_15_花粉症対策.png
