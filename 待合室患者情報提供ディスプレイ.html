@@ -282,24 +282,11 @@
             margin-right: 10px;
         }
 
-        /* ========== メガネとマスクの画像画面 ========== */
-        .mask-megane-screen {
+        /* ========== 画像スライドショー画面 ========== */
+        .slideshow-screen {
             background-color: #ffffff;
         }
-        .mask-megane-image {
-            max-width: 100%;
-            max-height: 100%;
-            width: auto;
-            height: auto;
-            object-fit: contain;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-        }
-
-        /* ========== アイフレイル画面(1〜4共通) ========== */
-        .eye-frail-screen {
-            background-color: #ffffff;
-        }
-        .eye-frail-image {
+        .slideshow-image {
             max-width: 100%;
             max-height: 100%;
             width: auto;
@@ -452,6 +439,23 @@
         /* ========== 天気予報画面 ========== */
         .weather-screen {
             background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #4a90e2 100%);
+            transition: background 0.5s ease;
+        }
+        /* 朝（5-10時）: 日の出のオレンジから水色 */
+        .weather-screen.time-morning {
+            background: linear-gradient(135deg, #ff9a56 0%, #ffbe76 30%, #74b9ff 100%);
+        }
+        /* 昼（10-16時）: 晴れ渡る青空 */
+        .weather-screen.time-noon {
+            background: linear-gradient(135deg, #4facfe 0%, #00c6fb 50%, #74b9ff 100%);
+        }
+        /* 夕方（16-19時）: 夕焼け */
+        .weather-screen.time-evening {
+            background: linear-gradient(135deg, #fa709a 0%, #ff9472 30%, #fee140 100%);
+        }
+        /* 夜（19-5時）: 夜空 */
+        .weather-screen.time-night {
+            background: linear-gradient(135deg, #0c1445 0%, #1a237e 50%, #283593 100%);
         }
         .weather-screen.active {
             display: flex;
@@ -483,18 +487,20 @@
         .weather-cards {
             display: flex;
             justify-content: center;
-            gap: clamp(30px, 4vw, 60px);
+            gap: clamp(15px, 2vw, 40px);
             width: 100%;
-            max-width: 1600px;
+            max-width: 1800px;
+            flex-wrap: wrap;
         }
         .weather-card {
             background: rgba(255, 255, 255, 0.15);
             backdrop-filter: blur(10px);
             border-radius: 24px;
-            padding: clamp(30px, 4vh, 50px) clamp(40px, 5vw, 70px);
+            padding: clamp(20px, 3vh, 40px) clamp(25px, 3vw, 50px);
             text-align: center;
-            flex: 1;
-            max-width: 450px;
+            flex: 1 1 280px;
+            max-width: 380px;
+            min-width: 280px;
             box-shadow: 0 8px 32px rgba(0,0,0,0.2);
             border: 1px solid rgba(255,255,255,0.2);
         }
@@ -789,8 +795,9 @@
         </div>
     </div>
 
-    <div class="fullscreen-overlay mask-megane-screen" id="mask-megane-screen">
-        <img src="花粉症にはメガネとマスクが有効です.png" alt="花粉症にはメガネとマスクが有効です" class="mask-megane-image">
+    <!-- 画像スライドショー画面（images/config.jsonから動的に読み込み） -->
+    <div class="fullscreen-overlay slideshow-screen" id="slideshow-screen">
+        <img src="" alt="スライドショー画像" class="slideshow-image" id="slideshow-image" onerror="this.style.display='none';" onload="this.style.display='block';">
     </div>
 
     <!-- ビリヤードロゴアニメーション画面 -->
@@ -833,7 +840,7 @@
             </div>
         </div>
         <div class="clock-logo-section">
-            <img src="ふじみ野ひかり眼科_ロゴ_高画質.png" alt="ふじみ野ひかり眼科ロゴ">
+            <img src="ふじみ野ひかり眼科_ロゴ_高画質.png" alt="ふじみ野ひかり眼科ロゴ" onerror="this.style.display='none';">
         </div>
     </div>
 
@@ -849,22 +856,6 @@
             </div>
             <div class="weather-source">出典：気象庁</div>
         </div>
-    </div>
-
-    <div class="fullscreen-overlay eye-frail-screen" id="eye-frail-screen-1">
-        <img src="アイフレイル1.png" alt="アイフレイル1" class="eye-frail-image">
-    </div>
-
-    <div class="fullscreen-overlay eye-frail-screen" id="eye-frail-screen-2">
-        <img src="アイフレイル2.png" alt="アイフレイル2" class="eye-frail-image">
-    </div>
-
-    <div class="fullscreen-overlay eye-frail-screen" id="eye-frail-screen-3">
-        <img src="アイフレイル3.png" alt="アイフレイル3" class="eye-frail-image">
-    </div>
-
-    <div class="fullscreen-overlay eye-frail-screen" id="eye-frail-screen-4">
-        <img src="アイフレイル4.png" alt="アイフレイル4" class="eye-frail-image">
     </div>
 
     <div class="fullscreen-overlay logo-animation-screen" id="logo-animation-screen">
@@ -890,20 +881,18 @@
                 main: 30000,          // メイン画面
                 alert: 15000,         // 花粉注意画面
                 tips: 15000,          // 対策ポイント(テキスト)
-                maskMegane: 15000,    // 対策ポイント(画像)
                 billiard: 30000,      // ビリヤードロゴアニメーション
                 clock: 15000,         // 時計画面
                 weather: 30000,       // 天気予報画面
                 weatherError: 3000,   // 天気予報エラー時
-                eyeFrail1: 10000,     // アイフレイル1
-                eyeFrail2: 20000,     // アイフレイル2
-                eyeFrail3: 30000,     // アイフレイル3
-                eyeFrail4: 7000,      // アイフレイル4
                 logo: 15000,          // ロゴアニメーション（パーティクル）
-                famicom: 15000        // ファミコン風ロゴ
+                famicom: 15000,       // ファミコン風ロゴ
+                slideshowDefault: 10000 // スライドショーのデフォルト表示時間
             },
             // レベルの重み付け（数値が大きいほど優先表示）
-            levelOrder: { '多い': 3, 'やや多い': 2, '少ない': 1, '': 0 }
+            levelOrder: { '多い': 3, 'やや多い': 2, '少ない': 1, '': 0 },
+            // スライドショー設定ファイルのパス
+            slideshowConfigPath: 'images/config.json'
         };
 
         // ==========================================
@@ -1138,21 +1127,86 @@
             let currentScreen = 0;
             let rotationTimeoutId = null;
             let weatherDataLoaded = false; // 天気データ読み込み状態
-            const screens = [
+            let slideshowImages = []; // スライドショー画像リスト
+
+            // 基本の画面リスト（スライドショー画像は動的に追加）
+            const baseScreens = [
                 { id: null, duration: CONFIG.durations.main },                    // メイン画面
                 { id: 'pollen-alert-screen', duration: CONFIG.durations.alert },  // 花粉アラート
                 { id: 'tips-screen', duration: CONFIG.durations.tips },           // 対策ポイント(テキスト)
-                { id: 'mask-megane-screen', duration: CONFIG.durations.maskMegane }, // 対策ポイント(画像)
+            ];
+
+            // 後半の固定画面
+            const endScreens = [
                 { id: 'billiard-screen', duration: CONFIG.durations.billiard },   // ビリヤードロゴ
                 { id: 'clock-screen', duration: CONFIG.durations.clock },         // 時計表示
                 { id: 'weather-screen', duration: CONFIG.durations.weather },     // 天気予報
-                { id: 'eye-frail-screen-1', duration: CONFIG.durations.eyeFrail1 }, // アイフレイル1
-                { id: 'eye-frail-screen-2', duration: CONFIG.durations.eyeFrail2 }, // アイフレイル2
-                { id: 'eye-frail-screen-3', duration: CONFIG.durations.eyeFrail3 }, // アイフレイル3
-                { id: 'eye-frail-screen-4', duration: CONFIG.durations.eyeFrail4 }, // アイフレイル4
                 { id: 'logo-animation-screen', duration: CONFIG.durations.logo },  // ロゴアニメーション（パーティクル）
                 { id: 'famicom-logo-screen', duration: CONFIG.durations.famicom }  // ファミコン風ロゴ
             ];
+
+            // スライドショー画像を含む全画面リスト
+            let screens = [];
+
+            // ファイル名から順番と表示秒数を解析
+            // 形式: {順番}_{秒数}_{説明}.{拡張子}  例: 1_15_花粉症対策.png
+            function parseImageFilename(filename) {
+                const match = filename.match(/^(\d+)_(\d+)_(.+)\.(png|jpg|jpeg|gif|webp)$/i);
+                if (match) {
+                    return {
+                        order: parseInt(match[1]),
+                        duration: parseInt(match[2]) * 1000, // 秒→ミリ秒
+                        description: match[3],
+                        filename: filename
+                    };
+                }
+                // 形式が合わない場合はデフォルト値
+                return {
+                    order: 999,
+                    duration: CONFIG.durations.slideshowDefault,
+                    description: filename,
+                    filename: filename
+                };
+            }
+
+            // スライドショー設定を読み込み
+            async function loadSlideshowConfig() {
+                try {
+                    const response = await fetch(CONFIG.slideshowConfigPath);
+                    if (!response.ok) {
+                        console.log('スライドショー設定ファイルが見つかりません');
+                        return [];
+                    }
+                    const config = await response.json();
+                    if (config.images && Array.isArray(config.images)) {
+                        // 画像情報を解析してソート
+                        const parsed = config.images
+                            .map(filename => parseImageFilename(filename))
+                            .sort((a, b) => a.order - b.order);
+                        console.log('スライドショー画像:', parsed);
+                        return parsed;
+                    }
+                } catch (error) {
+                    console.log('スライドショー設定読み込みエラー:', error);
+                }
+                return [];
+            }
+
+            // 画面リストを構築
+            async function buildScreensList() {
+                slideshowImages = await loadSlideshowConfig();
+
+                // スライドショー画像を画面リストに変換
+                const slideshowScreens = slideshowImages.map(img => ({
+                    id: 'slideshow-screen',
+                    duration: img.duration,
+                    slideshowImage: 'images/' + img.filename
+                }));
+
+                // 画面リストを構築: 基本画面 + スライドショー + 後半画面
+                screens = [...baseScreens, ...slideshowScreens, ...endScreens];
+                console.log('画面リスト構築完了:', screens.length, '画面');
+            }
 
             function showScreen(index) {
                 // すべてのオーバーレイを非表示
@@ -1163,9 +1217,17 @@
                 // 指定された画面を表示
                 if (screens[index].id) {
                     document.getElementById(screens[index].id).classList.add('active');
-                    
-                    // ロゴアニメーション画面が表示されたらアニメーションを開始
-                    if (screens[index].id === 'logo-animation-screen') {
+
+                    // スライドショー画面の場合は画像を設定
+                    if (screens[index].id === 'slideshow-screen' && screens[index].slideshowImage) {
+                        const imgEl = document.getElementById('slideshow-image');
+                        imgEl.src = screens[index].slideshowImage;
+                        imgEl.alt = screens[index].slideshowImage;
+                        stopParticleAnimation();
+                        stopBilliardAnimation();
+                        stopFamicomAnimation();
+                    } else if (screens[index].id === 'logo-animation-screen') {
+                        // ロゴアニメーション画面
                         startParticleAnimation();
                         stopBilliardAnimation();
                         stopFamicomAnimation();
@@ -1184,6 +1246,7 @@
                         stopParticleAnimation();
                         stopBilliardAnimation();
                         stopFamicomAnimation();
+                        updateWeatherScreenBackground(); // 時間帯に応じた背景に変更
                         fetchWeatherData();
                     } else {
                         // その他の画面ではアニメーションを停止
@@ -2139,14 +2202,40 @@
                         const popArea = popData.areas.find(a => a.area.code === '110010');
                         const pops = popArea ? popArea.pops : [];
                         
-                        // 気温データ
+                        // 気温データ（timeDefinesを参照して最高・最低を正しく判定）
                         const tempData = data[0].timeSeries[2];
+                        const tempTimeDefines = tempData ? tempData.timeDefines : [];
                         const tempArea = tempData ? tempData.areas.find(a => a.area.code === '110010' || a.area.name === 'さいたま') : null;
                         const temps = tempArea ? tempArea.temps : [];
+
+                        // 気温データを日付・種別ごとに整理
+                        const tempByDate = {};
+                        tempTimeDefines.forEach((td, idx) => {
+                            const date = new Date(td);
+                            const dateKey = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+                            const hour = date.getHours();
+                            if (!tempByDate[dateKey]) {
+                                tempByDate[dateKey] = { high: null, low: null };
+                            }
+                            // 時刻で最高・最低を判定（0-6時頃:最低、9-15時頃:最高）
+                            if (hour >= 0 && hour <= 6) {
+                                if (temps[idx] && temps[idx] !== '') {
+                                    tempByDate[dateKey].low = temps[idx];
+                                }
+                            } else if (hour >= 9 && hour <= 15) {
+                                if (temps[idx] && temps[idx] !== '') {
+                                    tempByDate[dateKey].high = temps[idx];
+                                }
+                            }
+                        });
                         
-                        // カードを生成（3日分）
+                        // カードを生成（データがある日数分）
                         let cardsHTML = '';
-                        const displayDays = Math.min(3, timeDefines.length);
+                        // 明後日のデータがあるか確認（天気情報が存在するか）
+                        let displayDays = Math.min(3, timeDefines.length);
+                        if (displayDays === 3 && (!weathers[2] || weathers[2] === '')) {
+                            displayDays = 2; // 明後日のデータがなければ2日分のみ表示
+                        }
                         
                         for (let i = 0; i < displayDays; i++) {
                             const dayLabel = getDayLabel(timeDefines[i], i);
@@ -2178,17 +2267,14 @@
                                 }
                             }
                             
-                            // 気温（今日の最高・最低、明日の最高・最低）
+                            // 気温（timeDefinesを参照して正しく取得）
                             let tempHigh = '---';
                             let tempLow = '---';
-                            if (temps.length >= 4) {
-                                if (i === 0) {
-                                    tempLow = temps[0] ? temps[0] + '°' : '---';
-                                    tempHigh = temps[1] ? temps[1] + '°' : '---';
-                                } else if (i === 1) {
-                                    tempLow = temps[2] ? temps[2] + '°' : '---';
-                                    tempHigh = temps[3] ? temps[3] + '°' : '---';
-                                }
+                            const cardDate = new Date(timeDefines[i]);
+                            const cardDateKey = `${cardDate.getFullYear()}-${cardDate.getMonth() + 1}-${cardDate.getDate()}`;
+                            if (tempByDate[cardDateKey]) {
+                                tempHigh = tempByDate[cardDateKey].high ? tempByDate[cardDateKey].high + '°' : '---';
+                                tempLow = tempByDate[cardDateKey].low ? tempByDate[cardDateKey].low + '°' : '---';
                             }
                             
                             cardsHTML += `
@@ -2228,6 +2314,26 @@
                     });
             }
 
+            // 時間帯に応じて天気画面の背景を変更
+            function updateWeatherScreenBackground() {
+                const weatherScreen = document.getElementById('weather-screen');
+                const hour = new Date().getHours();
+
+                // 既存の時間帯クラスを削除
+                weatherScreen.classList.remove('time-morning', 'time-noon', 'time-evening', 'time-night');
+
+                // 時間帯に応じたクラスを追加
+                if (hour >= 5 && hour < 10) {
+                    weatherScreen.classList.add('time-morning');  // 朝
+                } else if (hour >= 10 && hour < 16) {
+                    weatherScreen.classList.add('time-noon');     // 昼
+                } else if (hour >= 16 && hour < 19) {
+                    weatherScreen.classList.add('time-evening');  // 夕方
+                } else {
+                    weatherScreen.classList.add('time-night');    // 夜
+                }
+            }
+
             // 初期化
             renderTable(); // テーブルを生成
             highlightCurrentMonthColumn();
@@ -2236,7 +2342,11 @@
             updateClock();
             setInterval(updateClock, 1000); // 時計は常に更新(ただしupdateClock内で条件判定)
             // パーティクルアニメーションは最初は開始しない(ロゴ画面表示時に開始)
-            rotateScreens();
+
+            // スライドショー設定を読み込んでから画面ローテーション開始
+            buildScreensList().then(() => {
+                rotateScreens();
+            });
         });
     </script>
 </body>
