@@ -892,8 +892,13 @@
             // レベルの重み付け（数値が大きいほど優先表示）
             levelOrder: { '多い': 3, 'やや多い': 2, '少ない': 1, '': 0 },
             // スライドショー設定ファイルのパス
-            slideshowConfigPath: 'images/config.json'
+            slideshowConfigPath: 'images/config.json',
+            // 全体設定ファイルのパス
+            settingsPath: 'settings.json'
         };
+
+        // 外部設定（settings.jsonから読み込み）
+        let SETTINGS = null;
 
         // ==========================================
         //  花粉データ管理エリア
@@ -1169,6 +1174,23 @@
                 };
             }
 
+            // 全体設定を読み込み
+            async function loadSettings() {
+                try {
+                    const response = await fetch(CONFIG.settingsPath);
+                    if (!response.ok) {
+                        console.log('settings.json が見つかりません。デフォルト設定を使用します。');
+                        return null;
+                    }
+                    const settings = await response.json();
+                    console.log('設定読み込み完了:', settings);
+                    return settings;
+                } catch (error) {
+                    console.log('settings.json 読み込みエラー:', error);
+                    return null;
+                }
+            }
+
             // スライドショー設定を読み込み
             async function loadSlideshowConfig() {
                 try {
@@ -1194,6 +1216,8 @@
 
             // 画面リストを構築
             async function buildScreensList() {
+                // 設定を読み込み
+                SETTINGS = await loadSettings();
                 slideshowImages = await loadSlideshowConfig();
 
                 // スライドショー画像を画面リストに変換
@@ -1203,8 +1227,42 @@
                     slideshowImage: 'images/' + img.filename
                 }));
 
-                // 画面リストを構築: 基本画面 + スライドショー + 後半画面
-                screens = [...baseScreens, ...slideshowScreens, ...endScreens];
+                // CM設定がある場合、スライドショーの合間にCMを挿入
+                let contentScreens = [];
+                if (SETTINGS && SETTINGS.cm && SETTINGS.cm.enabled && slideshowScreens.length > 0) {
+                    const cmInterval = SETTINGS.cm.interval || 2;
+                    const cmAnimations = (SETTINGS.cm.animations || []).filter(cm => cm.enabled);
+                    let cmIndex = 0;
+
+                    slideshowScreens.forEach((slide, index) => {
+                        contentScreens.push(slide);
+
+                        // N枚ごとにCMを挿入（最後の画像の後は挿入しない）
+                        if ((index + 1) % cmInterval === 0 && index < slideshowScreens.length - 1 && cmAnimations.length > 0) {
+                            const cm = cmAnimations[cmIndex % cmAnimations.length];
+                            contentScreens.push({
+                                id: cm.id,
+                                duration: cm.duration * 1000,
+                                isCM: true
+                            });
+                            cmIndex++;
+                        }
+                    });
+                    console.log('CM挿入完了: 間隔=' + cmInterval + '枚, CM数=' + cmIndex);
+                } else {
+                    // 設定がない場合は従来通り
+                    contentScreens = slideshowScreens;
+                }
+
+                // 後半画面からCMアニメーションを除外（CMとして挿入済みのため）
+                let finalEndScreens = endScreens;
+                if (SETTINGS && SETTINGS.cm && SETTINGS.cm.enabled) {
+                    const cmIds = (SETTINGS.cm.animations || []).filter(cm => cm.enabled).map(cm => cm.id);
+                    finalEndScreens = endScreens.filter(screen => !cmIds.includes(screen.id));
+                }
+
+                // 画面リストを構築: 基本画面 + コンテンツ(スライド+CM) + 後半画面
+                screens = [...baseScreens, ...contentScreens, ...finalEndScreens];
                 console.log('画面リスト構築完了:', screens.length, '画面');
             }
 

@@ -1,0 +1,44 @@
+{
+  "clinic": {
+    "name": "ふじみ野ひかり眼科",
+    "logo": "ふじみ野ひかり眼科_ロゴ_高画質.png"
+  },
+  "screens": {
+    "main": 30,
+    "alert": 15,
+    "tips": 15,
+    "clock": 15,
+    "weather": 30
+  },
+  "cm": {
+    "enabled": true,
+    "interval": 2,
+    "animations": [
+      {
+        "id": "billiard-screen",
+        "name": "ビリヤードロゴ",
+        "type": "animation",
+        "duration": 30,
+        "enabled": true
+      },
+      {
+        "id": "logo-animation-screen",
+        "name": "パーティクルロゴ",
+        "type": "animation",
+        "duration": 15,
+        "enabled": true
+      },
+      {
+        "id": "famicom-logo-screen",
+        "name": "ファミコン風ロゴ",
+        "type": "animation",
+        "duration": 15,
+        "enabled": true
+      }
+    ]
+  },
+  "_comment": {
+    "interval": "スライドショー画像N枚ごとにCMを1つ挿入（2 = 2枚ごと）",
+    "type": "animation = HTML内蔵アニメーション、video = MP4動画（Phase2で対応予定）"
+  }
+}
