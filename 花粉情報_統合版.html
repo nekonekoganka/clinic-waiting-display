@@ -1,0 +1,2243 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>花粉飛散情報（天気予報追加版）</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
+
+        :root {
+            --bg-color: #f0f4f8;
+            --container-bg: white;
+            --header-bg: #4a90e2;
+            --header-border: #357abd;
+            --header-text: white;
+            --border-color: #ddd;
+            --text-color-dark: #34495e;
+            --text-color-light: #6c757d;
+            --card-accent-color: #1a5f9e;
+            --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --tree-high: #ff4444;
+            --tree-medium: #ff8844;
+            --tree-low: #ffdd44;
+            --grass-high: #2d5a5a;
+            --grass-medium: #4d8a8a;
+            --grass-low: #8dd8d8;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans JP', 'Hiragino Sans', 'Yu Gothic', sans-serif; background-color: var(--bg-color); height: 100vh; overflow: hidden; }
+        .container { width: 100%; height: 100vh; background-color: var(--container-bg); display: flex; flex-direction: column; }
+        .table-container { flex-grow: 1; overflow: hidden; padding: 10px 10px 5px 10px; display: flex; align-items: stretch; }
+        table { width: 100%; border-collapse: collapse; font-size: clamp(11px, 1.2vw, 16px); table-layout: fixed; }
+        
+        .header { background-color: var(--header-bg); color: var(--header-text); font-weight: bold; }
+        .header th { padding: clamp(4px, 0.8vh, 10px) 2px; text-align: center; border: 1px solid var(--header-border); font-size: clamp(21.6px, 3.6vh, 38.4px); font-weight: bold; vertical-align: middle; white-space: nowrap; }
+        .header th:first-child { width: clamp(150px, 15vw, 225px); }
+        
+        .current-month-column {
+            position: relative;
+            box-shadow: -6px 0 0 0 #ff6b6b inset, 6px 0 0 0 #ff6b6b inset;
+            animation: pulse-border 1.8s infinite ease-in-out;
+        }
+
+        .header .current-month-column {
+            background-color: var(--tree-high);
+            border-color: #c0392b;
+            animation: pulse-border 1.8s infinite ease-in-out, pulse-header-red 1.8s infinite ease-in-out;
+        }
+        
+        .plant-name { background-color: #f8f9fa; font-weight: bold; padding: clamp(6px, 1vh, 10px) clamp(6px, 0.8vw, 10px); border: 1px solid var(--border-color); width: 100%; height: clamp(40px, 6vh, 55px); vertical-align: middle; font-size: clamp(25.5px, 3.9vh, 31.5px); }
+        tbody tr, tbody tr td { height: clamp(40px, 6vh, 55px); }
+        td { padding: clamp(3px, 0.5vh, 8px); border: 1px solid var(--border-color); text-align: center; position: relative; vertical-align: middle; }
+        
+        .tree-high { background-color: var(--tree-high); } .tree-medium { background-color: var(--tree-medium); } .tree-low { background-color: var(--tree-low); }
+        .grass-high { background-color: var(--grass-high); } .grass-medium { background-color: var(--grass-medium); } .grass-low { background-color: var(--grass-low); }
+        
+        .current-month-info { flex-shrink: 0; padding: clamp(15px, 2.5vh, 25px); background: linear-gradient(135deg, #eef7ff 0%, #ffffff 100%); border-top: 4px solid var(--header-bg); display: flex; align-items: stretch; gap: clamp(15px, 2vw, 25px); max-height: 40vh; }
+        
+        .pollen-info-card { flex: 0 0 35%; background-color: var(--container-bg); padding: clamp(10px, 1.5vh, 20px); border-radius: 12px; box-shadow: var(--card-shadow); display: flex; flex-direction: column; gap: clamp(8px, 1.2vh, 12px); overflow-y: auto; }
+        .pollen-info-card h2 { font-size: clamp(20px, 3.2vh, 30px); font-weight: bold; color: var(--card-accent-color); text-align: center; flex-shrink: 0; }
+        #pollen-details { display: flex; flex-direction: column; gap: clamp(6px, 1vh, 10px); }
+        
+        .tips-info-card { flex: 1; background-color: var(--container-bg); padding: clamp(10px, 1.5vh, 20px); border-radius: 12px; box-shadow: var(--card-shadow); display: flex; flex-direction: column; }
+        .tips-info-card .tips-title { font-size: clamp(22px, 3.5vh, 28px); font-weight: bold; color: var(--card-accent-color); text-align: center; margin-bottom: clamp(10px, 1.5vh, 15px); }
+        .tips-info-card .tips-grid { display: flex; gap: clamp(10px, 1.5vw, 20px); }
+        .tips-info-card .tip { flex: 1; text-align: center; background-color: #f8fcff; padding: clamp(10px, 2vh, 20px); border-radius: 8px; border: 1px solid #dbeaf5; }
+        .tips-info-card .tip strong { color: var(--card-accent-color); display: block; margin-bottom: 2px; font-size: clamp(24px, 3.9vh, 30px); }
+        .tips-info-card .tip p { font-size: clamp(21px, 3.3vh, 27px); line-height: 1.5; color: var(--text-color-dark); font-weight: bold; }
+        
+        .bottom-area { margin-top: auto; padding-top: 10px; }
+        .clinic-message { text-align: center; font-size: clamp(22.5px, 3.6vh, 28.5px); color: #588db9; font-weight: bold; padding: 5px; }
+        .source-citation-bottom { text-align: center; font-size: clamp(13.5px, 1.8vh, 16.5px); color: var(--text-color-light); padding-top: 5px; font-weight: bold; }
+        
+        .pollen-item { display: flex; align-items: center; padding: clamp(8px, 1.2vh, 12px) 150px; background-color: #f8f9fa; border-radius: 8px; border-left: 5px solid; }
+        .pollen-item-name { font-weight: bold; font-size: clamp(14px, 2.2vh, 18px); color: var(--text-color-dark); margin-right: auto; }
+        .pollen-item-level { font-size: clamp(13px, 2vh, 16px); font-weight: bold; color: var(--text-color-dark); }
+        
+        .pollen-item.tree-high { border-color: var(--tree-high); } .pollen-item.tree-medium { border-color: var(--tree-medium); } .pollen-item.tree-low { border-color: var(--tree-low); }
+        .pollen-item.grass-high { border-color: var(--grass-high); } .pollen-item.grass-medium { border-color: var(--grass-medium); } .pollen-item.grass-low { border-color: var(--grass-low); }
+
+        .info-message { text-align: center; font-size: clamp(13px, 2vh, 16px); color: #555; padding: 10px; background-color: #f8f9fa; border-radius: 8px; }
+
+        @keyframes pulse-red {
+            0% { background-color: #f8f9fa; box-shadow: none; }
+            50% { background-color: #ffeaea; box-shadow: 0 0 10px rgba(255, 68, 68, 0.7); }
+            100% { background-color: #f8f9fa; box-shadow: none; }
+        }
+        .pollen-item-high-alert {
+            animation: pulse-red 1.8s infinite ease-in-out;
+        }
+
+        @keyframes pulse-border {
+            0% { box-shadow: -6px 0 0 0 #ff6b6b inset, 6px 0 0 0 #ff6b6b inset; }
+            50% { box-shadow: -6px 0 0 0 rgba(255, 107, 107, 0.2) inset, 6px 0 0 0 rgba(255, 107, 107, 0.2) inset; }
+            100% { box-shadow: -6px 0 0 0 #ff6b6b inset, 6px 0 0 0 #ff6b6b inset; }
+        }
+
+        @keyframes pulse-header-red {
+            0% { background-color: var(--tree-high); }
+            50% { background-color: #ff8080; }
+            100% { background-color: var(--tree-high); }
+        }
+
+        /* ========== フルスクリーンオーバーレイ ========== */
+        .fullscreen-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.8s ease, visibility 0.8s ease;
+        }
+        .fullscreen-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* 花粉注意画面 */
+        .pollen-alert-screen {
+            background: linear-gradient(145deg, #fff9e6 0%, #fff3cd 30%, #ffe8a8 100%);
+        }
+        .pollen-alert-content {
+            text-align: center;
+            padding: 20px;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .pollen-alert-icon {
+            font-size: clamp(100px, 15vh, 150px);
+            margin-bottom: 10px;
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+        .pollen-alert-month {
+            font-size: clamp(60px, 10vh, 100px);
+            color: #b8860b;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .pollen-alert-title {
+            font-size: clamp(70px, 12vh, 120px);
+            color: #d35400;
+            font-weight: bold;
+            margin-bottom: 30px;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.15);
+        }
+        .pollen-alert-list {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 25px;
+            max-width: 95%;
+        }
+        .pollen-alert-item {
+            background: white;
+            border-radius: 24px;
+            padding: 30px 50px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            transition: transform 0.3s ease;
+        }
+        .pollen-alert-item:hover {
+            transform: scale(1.05);
+        }
+        .pollen-alert-item-icon {
+            font-size: clamp(50px, 8vh, 80px);
+        }
+        .pollen-alert-item-info {
+            text-align: left;
+        }
+        .pollen-alert-item-name {
+            font-size: clamp(42px, 7vh, 70px);
+            font-weight: bold;
+            color: #333;
+        }
+        .pollen-alert-item-level {
+            font-size: clamp(32px, 5vh, 50px);
+            font-weight: bold;
+            padding: 8px 20px;
+            border-radius: 12px;
+            display: inline-block;
+            margin-top: 8px;
+        }
+        .level-high { background: #ffcccc; color: #c0392b; }
+        .level-medium { background: #ffe0b3; color: #d35400; }
+        .level-low { background: #fff3cd; color: #b8860b; }
+
+        /* 対策ポイント画面 */
+        .tips-screen {
+            background: linear-gradient(145deg, #e8f5e9 0%, #c8e6c9 30%, #a5d6a7 100%);
+        }
+        .tips-fullscreen-content {
+            text-align: center;
+            padding: 15px 30px;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .tips-fullscreen-icon {
+            font-size: clamp(60px, 8vh, 90px);
+            margin-bottom: 5px;
+        }
+        .tips-fullscreen-title {
+            font-size: clamp(50px, 7vh, 75px);
+            color: #2e7d32;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.12);
+        }
+        .tips-fullscreen-grid {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 15px;
+            width: 90%;
+            max-width: 1400px;
+        }
+        .tips-fullscreen-card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px 40px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            transition: transform 0.3s ease;
+        }
+        .tips-fullscreen-card:hover {
+            transform: translateX(10px);
+        }
+        .tips-card-icon {
+            font-size: clamp(50px, 7vh, 80px);
+            flex-shrink: 0;
+        }
+        .tips-card-content {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            flex-grow: 1;
+        }
+        .tips-card-title {
+            font-size: clamp(36px, 5vh, 55px);
+            color: #1b5e20;
+            font-weight: bold;
+            flex-shrink: 0;
+            min-width: 180px;
+        }
+        .tips-card-text {
+            font-size: clamp(30px, 4vh, 45px);
+            color: #333;
+            line-height: 1.4;
+            text-align: left;
+        }
+        .tips-fullscreen-footer {
+            margin-top: 20px;
+            font-size: clamp(32px, 4.5vh, 48px);
+            color: #388e3c;
+            font-weight: bold;
+        }
+        .tips-fullscreen-footer-icon {
+            font-size: clamp(38px, 5vh, 55px);
+            vertical-align: middle;
+            margin-right: 10px;
+        }
+
+        /* ========== メガネとマスクの画像画面 ========== */
+        .mask-megane-screen {
+            background-color: #ffffff;
+        }
+        .mask-megane-image {
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        /* ========== アイフレイル画面(1〜4共通) ========== */
+        .eye-frail-screen {
+            background-color: #ffffff;
+        }
+        .eye-frail-image {
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        /* ========== 時計表示画面 ========== */
+        .clock-screen {
+            background-color: #f5f5f5;
+            flex-direction: column;
+        }
+        .clock-screen.active {
+            display: flex;
+        }
+        .clock-content {
+            text-align: center;
+            color: #333333;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+        .clock-date-weekday-section {
+            margin-bottom: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+        }
+        .clock-date-display {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 15px;
+            line-height: 1;
+        }
+        .clock-date-display .number {
+            font-size: clamp(150px, 22vh, 240px);
+            font-weight: 700;
+            margin-left: 0.2em;
+        }
+        .clock-date-display ruby {
+            display: inline-flex;
+            flex-direction: column-reverse;
+            font-size: clamp(75px, 11vh, 120px);
+            font-weight: 700;
+        }
+        .clock-date-display rt {
+            font-size: clamp(50px, 7vh, 80px);
+            font-weight: 400;
+            letter-spacing: 2px;
+        }
+        .clock-weekday-section {
+            line-height: 1.2;
+        }
+        .clock-weekday-ruby {
+            font-size: clamp(50px, 7vh, 80px);
+            font-weight: 400;
+            margin-bottom: 5px;
+            letter-spacing: 8px;
+        }
+        .clock-weekday-main {
+            font-size: clamp(100px, 14vh, 160px);
+            font-weight: 700;
+            letter-spacing: 4px;
+        }
+        .clock-time-section {
+            margin-bottom: 20px;
+        }
+        .clock-time-display {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 15px;
+            line-height: 1;
+        }
+        .clock-time-display .number {
+            font-size: clamp(120px, 17vh, 190px);
+            font-weight: 700;
+            margin-left: 0.2em;
+        }
+        .clock-time-display ruby {
+            display: inline-flex;
+            flex-direction: column-reverse;
+            font-size: clamp(60px, 8.5vh, 95px);
+            font-weight: 700;
+        }
+        .clock-time-display rt {
+            font-size: clamp(30px, 4.2vh, 48px);
+            font-weight: 400;
+            letter-spacing: 2px;
+            text-align: center;
+            display: block;
+        }
+        .clock-time-display .seconds-number {
+            font-size: clamp(80px, 11vh, 130px);
+            font-weight: 700;
+            margin-left: 0.2em;
+        }
+        .clock-time-display .seconds-kanji {
+            display: inline-flex;
+            flex-direction: column-reverse;
+            font-size: clamp(40px, 5.6vh, 65px);
+            font-weight: 700;
+        }
+        .clock-time-display .seconds-kanji rt {
+            font-size: clamp(20px, 2.8vh, 32px);
+            font-weight: 400;
+            letter-spacing: 2px;
+            text-align: center;
+            display: block;
+        }
+        .clock-logo-section {
+            padding: 10px 20px 30px 20px;
+            text-align: center;
+        }
+        .clock-logo-section img {
+            max-width: 95%;
+            width: 95%;
+            height: auto;
+            object-fit: contain;
+            transform: scale(0.855);
+            box-shadow: 5px 5px 10px rgba(0,0,0,0.3);
+        }
+
+        /* ========== ロゴアニメーション画面 ========== */
+        .logo-animation-screen {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        }
+        .logo-animation-screen.active {
+            display: flex;
+        }
+        .logo-animation-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #particleCanvas {
+            max-width: 95vw;
+            max-height: 95vh;
+            width: auto;
+            height: auto;
+        }
+
+        /* ========== 天気予報画面 ========== */
+        .weather-screen {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #4a90e2 100%);
+        }
+        .weather-screen.active {
+            display: flex;
+        }
+        .weather-content {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            color: white;
+        }
+        .weather-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .weather-location {
+            font-size: clamp(36px, 5vh, 50px);
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .weather-update-time {
+            font-size: clamp(18px, 2.5vh, 24px);
+            opacity: 0.9;
+        }
+        .weather-cards {
+            display: flex;
+            justify-content: center;
+            gap: clamp(30px, 4vw, 60px);
+            width: 100%;
+            max-width: 1600px;
+        }
+        .weather-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            padding: clamp(30px, 4vh, 50px) clamp(40px, 5vw, 70px);
+            text-align: center;
+            flex: 1;
+            max-width: 450px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .weather-card-date {
+            font-size: clamp(28px, 4vh, 40px);
+            font-weight: bold;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(255,255,255,0.3);
+        }
+        .weather-card-icon {
+            font-size: clamp(80px, 12vh, 140px);
+            margin: 20px 0;
+            filter: drop-shadow(3px 3px 5px rgba(0,0,0,0.3));
+        }
+        .weather-card-text {
+            font-size: clamp(24px, 3.5vh, 36px);
+            font-weight: bold;
+            margin-bottom: 25px;
+            min-height: 2.5em;
+            line-height: 1.3;
+        }
+        .weather-card-temps {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 20px;
+        }
+        .weather-temp {
+            font-size: clamp(28px, 4vh, 42px);
+            font-weight: bold;
+        }
+        .weather-temp-high {
+            color: #ffcccc;
+        }
+        .weather-temp-low {
+            color: #cce5ff;
+        }
+        .weather-temp-label {
+            font-size: clamp(14px, 2vh, 18px);
+            opacity: 0.8;
+        }
+        .weather-card-rain {
+            font-size: clamp(22px, 3vh, 30px);
+            background: rgba(255,255,255,0.2);
+            padding: 10px 20px;
+            border-radius: 12px;
+            display: inline-block;
+        }
+        .weather-card-rain-icon {
+            margin-right: 8px;
+        }
+        .weather-loading {
+            font-size: clamp(32px, 5vh, 48px);
+            text-align: center;
+        }
+        .weather-source {
+            margin-top: 40px;
+            font-size: clamp(16px, 2vh, 20px);
+            opacity: 0.7;
+        }
+
+        /* ========== ファミコン風ロゴ画面 ========== */
+        .famicom-logo-screen {
+            background: #000000;
+        }
+        .famicom-logo-screen.active {
+            display: flex;
+        }
+        .famicom-logo-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #famicomCanvas {
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+
+        /* ========== ビリヤードロゴアニメーション画面 ========== */
+        .billiard-screen {
+            background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%);
+        }
+        .billiard-screen.active {
+            display: flex;
+        }
+        .billiard-container {
+            position: relative;
+            width: 1920px;
+            height: 1080px;
+            overflow: hidden;
+        }
+        .billiard-ball {
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: transparent;
+            border: none;
+            font-size: 158px;
+            font-weight: bold;
+            color: #ffffff;
+            transform: translate(-50%, -50%);
+            font-family: 'Hiragino Kaku Gothic Pro', 'メイリオ', sans-serif;
+        }
+        .billiard-cue-ball {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            background: #ffffff;
+            border-radius: 50%;
+            box-shadow: 4px 4px 15px rgba(0,0,0,0.5);
+            transform: translate(-50%, -50%);
+        }
+        .billiard-cue-stick {
+            position: absolute;
+            width: 400px;
+            height: 16px;
+            background: linear-gradient(90deg, #2a2a2a 0%, #4a4a4a 50%, #6a6a6a 100%);
+            border-radius: 8px;
+            transform-origin: right center;
+            opacity: 0;
+            box-shadow: 4px 4px 10px rgba(0,0,0,0.5);
+        }
+        .billiard-impact {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,0.9) 0%, transparent 70%);
+            opacity: 0;
+            pointer-events: none;
+        }
+        .billiard-impact.show {
+            animation: billiardImpactFlash 0.3s ease-out forwards;
+        }
+        @keyframes billiardImpactFlash {
+            0% { opacity: 1; transform: scale(0.5); }
+            100% { opacity: 0; transform: scale(2.5); }
+        }
+        .billiard-shine-line {
+            position: absolute;
+            top: 390px;
+            left: -200px;
+            width: 150px;
+            height: 300px;
+            background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.1) 20%, rgba(255,255,255,0.8) 50%, rgba(255,255,255,0.1) 80%, transparent 100%);
+            transform: skewX(-20deg);
+            opacity: 0;
+            pointer-events: none;
+        }
+        .billiard-shine-line.animate {
+            animation: billiardShinePass 0.8s ease-in-out forwards;
+        }
+        @keyframes billiardShinePass {
+            0% { left: 0px; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { left: 1920px; opacity: 0; }
+        }
+        .billiard-sparkle {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .billiard-sparkle::before,
+        .billiard-sparkle::after {
+            content: '';
+            position: absolute;
+            background: #ffffff;
+        }
+        .billiard-sparkle::before {
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            transform: translateY(-50%);
+            border-radius: 2px;
+        }
+        .billiard-sparkle::after {
+            left: 50%;
+            top: 0;
+            width: 4px;
+            height: 100%;
+            transform: translateX(-50%);
+            border-radius: 2px;
+        }
+        .billiard-sparkle.animate {
+            animation: billiardSparkleFlash 0.6s ease-out forwards;
+        }
+        @keyframes billiardSparkleFlash {
+            0% { opacity: 0; transform: scale(0) rotate(0deg); }
+            50% { opacity: 1; transform: scale(1.2) rotate(15deg); }
+            100% { opacity: 0; transform: scale(0.5) rotate(30deg); }
+        }
+        .billiard-sparkle-small {
+            width: 25px;
+            height: 25px;
+        }
+        .billiard-sparkle-small::before { height: 2px; }
+        .billiard-sparkle-small::after { width: 2px; }
+    </style>
+</head>
+<body>
+    <div class="container" id="main-container">
+        <div class="table-container">
+            <table>
+            <thead>
+                <tr class="header">
+                    <th scope="col">花粉名</th>
+                    <th scope="col" id="month-1">1月</th><th scope="col" id="month-2">2月</th><th scope="col" id="month-3">3月</th><th scope="col" id="month-4">4月</th>
+                    <th scope="col" id="month-5">5月</th><th scope="col" id="month-6">6月</th><th scope="col" id="month-7">7月</th><th scope="col" id="month-8">8月</th>
+                    <th scope="col" id="month-9">9月</th><th scope="col" id="month-10">10月</th><th scope="col" id="month-11">11月</th><th scope="col" id="month-12">12月</th>
+                </tr>
+            </thead>
+            <tbody id="pollen-table-body"></tbody>
+        </table>
+        </div>
+        
+        <div class="current-month-info" id="current-month-info" aria-live="polite">
+            <div class="tips-info-card">
+                <h3 class="tips-title">🏥 花粉症対策のポイント</h3>
+                <div class="tips-grid">
+                    <div class="tip">
+                        <strong>外出時</strong>
+                        <p>マスク・メガネを着用しましょう</p>
+                    </div>
+                    <div class="tip">
+                        <strong>帰宅時</strong>
+                        <p>玄関前で花粉を払い、手洗い・うがいを</p>
+                    </div>
+                </div>
+                <div class="bottom-area">
+                    <p class="clinic-message">症状が辛い場合は、お気軽にご相談ください</p>
+                    <p class="source-citation-bottom">このグラフは <strong>環境省の花粉症環境保健マニュアル</strong> から引用しました</p>
+                </div>
+            </div>
+            <div class="pollen-info-card">
+                <h2 id="current-month-title">今月の花粉情報</h2>
+                <div id="pollen-details"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="fullscreen-overlay pollen-alert-screen" id="pollen-alert-screen">
+        <div class="pollen-alert-content">
+            <div class="pollen-alert-icon" id="pollen-alert-icon">🌸</div>
+            <div class="pollen-alert-month" id="pollen-alert-month"></div>
+            <div class="pollen-alert-title">この花粉にご注意ください</div>
+            <div class="pollen-alert-list" id="pollen-alert-list"></div>
+        </div>
+    </div>
+
+    <div class="fullscreen-overlay tips-screen" id="tips-screen">
+        <div class="tips-fullscreen-content">
+            <div class="tips-fullscreen-icon">🛡️</div>
+            <div class="tips-fullscreen-title">花粉症対策のポイント</div>
+            <div class="tips-fullscreen-grid">
+                <div class="tips-fullscreen-card">
+                    <div class="tips-card-icon">🚶</div>
+                    <div class="tips-card-content">
+                        <div class="tips-card-title">外出時</div>
+                        <div class="tips-card-text">マスク・メガネを着用しましょう</div>
+                    </div>
+                </div>
+                <div class="tips-fullscreen-card">
+                    <div class="tips-card-icon">🏠</div>
+                    <div class="tips-card-content">
+                        <div class="tips-card-title">帰宅時</div>
+                        <div class="tips-card-text">玄関前で花粉を払い、手洗い・うがいを</div>
+                    </div>
+                </div>
+                <div class="tips-fullscreen-card">
+                    <div class="tips-card-icon">🧺</div>
+                    <div class="tips-card-content">
+                        <div class="tips-card-title">洗濯物</div>
+                        <div class="tips-card-text">室内干しで花粉の付着を防止</div>
+                    </div>
+                </div>
+            </div>
+            <div class="tips-fullscreen-footer">
+                <span class="tips-fullscreen-footer-icon">💊</span>
+                症状が辛い場合は、お気軽にご相談ください
+            </div>
+        </div>
+    </div>
+
+    <div class="fullscreen-overlay mask-megane-screen" id="mask-megane-screen">
+        <img src="花粉症にはメガネとマスクが有効です.png" alt="花粉症にはメガネとマスクが有効です" class="mask-megane-image">
+    </div>
+
+    <!-- ビリヤードロゴアニメーション画面 -->
+    <div class="fullscreen-overlay billiard-screen" id="billiard-screen">
+        <div class="billiard-container">
+            <div class="billiard-ball" id="billiard-ball-1">ふ</div>
+            <div class="billiard-ball" id="billiard-ball-2">じ</div>
+            <div class="billiard-ball" id="billiard-ball-3">み</div>
+            <div class="billiard-ball" id="billiard-ball-4">野</div>
+            <div class="billiard-ball" id="billiard-ball-5">ひ</div>
+            <div class="billiard-ball" id="billiard-ball-6">か</div>
+            <div class="billiard-ball" id="billiard-ball-7">り</div>
+            <div class="billiard-ball" id="billiard-ball-8">眼</div>
+            <div class="billiard-ball" id="billiard-ball-9">科</div>
+            <div class="billiard-cue-ball" id="billiard-cue-ball"></div>
+            <div class="billiard-cue-stick" id="billiard-cue-stick"></div>
+            <div class="billiard-impact" id="billiard-impact"></div>
+            <div class="billiard-shine-line" id="billiard-shine-line"></div>
+            <div class="billiard-sparkle" id="billiard-sparkle1"></div>
+            <div class="billiard-sparkle billiard-sparkle-small" id="billiard-sparkle2"></div>
+            <div class="billiard-sparkle billiard-sparkle-small" id="billiard-sparkle3"></div>
+            <div class="billiard-sparkle" id="billiard-sparkle4"></div>
+            <div class="billiard-sparkle billiard-sparkle-small" id="billiard-sparkle5"></div>
+        </div>
+    </div>
+
+    <div class="fullscreen-overlay clock-screen" id="clock-screen">
+        <div class="clock-content">
+            <div class="clock-date-weekday-section">
+                <div class="clock-date-section">
+                    <div class="clock-date-display" id="clock-date-display"></div>
+                </div>
+                <div class="clock-weekday-section">
+                    <div class="clock-weekday-ruby" id="clock-weekday-ruby"></div>
+                    <div class="clock-weekday-main" id="clock-weekday-main"></div>
+                </div>
+            </div>
+            <div class="clock-time-section">
+                <div class="clock-time-display" id="clock-time-display"></div>
+            </div>
+        </div>
+        <div class="clock-logo-section">
+            <img src="ふじみ野ひかり眼科_ロゴ_高画質.png" alt="ふじみ野ひかり眼科ロゴ">
+        </div>
+    </div>
+
+    <!-- 天気予報画面 -->
+    <div class="fullscreen-overlay weather-screen" id="weather-screen">
+        <div class="weather-content">
+            <div class="weather-header">
+                <div class="weather-location">🌤️ ふじみ野市の天気予報</div>
+                <div class="weather-update-time" id="weather-update-time"></div>
+            </div>
+            <div class="weather-cards" id="weather-cards">
+                <div class="weather-loading">☁️ データ取得中...</div>
+            </div>
+            <div class="weather-source">出典：気象庁</div>
+        </div>
+    </div>
+
+    <div class="fullscreen-overlay eye-frail-screen" id="eye-frail-screen-1">
+        <img src="アイフレイル1.png" alt="アイフレイル1" class="eye-frail-image">
+    </div>
+
+    <div class="fullscreen-overlay eye-frail-screen" id="eye-frail-screen-2">
+        <img src="アイフレイル2.png" alt="アイフレイル2" class="eye-frail-image">
+    </div>
+
+    <div class="fullscreen-overlay eye-frail-screen" id="eye-frail-screen-3">
+        <img src="アイフレイル3.png" alt="アイフレイル3" class="eye-frail-image">
+    </div>
+
+    <div class="fullscreen-overlay eye-frail-screen" id="eye-frail-screen-4">
+        <img src="アイフレイル4.png" alt="アイフレイル4" class="eye-frail-image">
+    </div>
+
+    <div class="fullscreen-overlay logo-animation-screen" id="logo-animation-screen">
+        <div class="logo-animation-container">
+            <canvas id="particleCanvas"></canvas>
+        </div>
+    </div>
+
+    <!-- ファミコン風ロゴ画面 -->
+    <div class="fullscreen-overlay famicom-logo-screen" id="famicom-logo-screen">
+        <div class="famicom-logo-container">
+            <canvas id="famicomCanvas"></canvas>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        //  設定エリア (ここを変更するだけで調整可能)
+        // ==========================================
+        const CONFIG = {
+            // 画面切り替え時間（ミリ秒: 1000 = 1秒）
+            durations: {
+                main: 30000,          // メイン画面
+                alert: 15000,         // 花粉注意画面
+                tips: 15000,          // 対策ポイント(テキスト)
+                maskMegane: 15000,    // 対策ポイント(画像)
+                billiard: 30000,      // ビリヤードロゴアニメーション
+                clock: 15000,         // 時計画面
+                weather: 30000,       // 天気予報画面
+                weatherError: 3000,   // 天気予報エラー時
+                eyeFrail1: 10000,     // アイフレイル1
+                eyeFrail2: 20000,     // アイフレイル2
+                eyeFrail3: 30000,     // アイフレイル3
+                eyeFrail4: 7000,      // アイフレイル4
+                logo: 15000,          // ロゴアニメーション（パーティクル）
+                famicom: 15000        // ファミコン風ロゴ
+            },
+            // レベルの重み付け（数値が大きいほど優先表示）
+            levelOrder: { '多い': 3, 'やや多い': 2, '少ない': 1, '': 0 }
+        };
+
+        // ==========================================
+        //  花粉データ管理エリア
+        // ==========================================
+        const POLLEN_DATA = [
+            {
+                name: 'ハンノキ属',
+                type: 'tree',
+                schedule: { 1: '少ない', 2: '少ない', 3: '少ない', 4: '少ない', 5: '少ない', 6: '少ない' }
+            },
+            {
+                name: 'スギ',
+                type: 'tree',
+                schedule: { 1: '少ない', 2: 'やや多い', 3: '多い', 4: '多い', 5: '少ない', 10: '少ない', 11: '少ない', 12: '少ない' }
+            },
+            {
+                name: 'ヒノキ',
+                type: 'tree',
+                schedule: { 2: '少ない', 3: 'やや多い', 4: '多い', 5: 'やや多い', 6: '少ない' }
+            },
+            {
+                name: 'イネ科',
+                type: 'grass',
+                schedule: { 4: '少ない', 5: 'やや多い', 6: '多い', 7: '少ない', 8: '少ない', 9: '少ない', 10: '少ない' }
+            },
+            {
+                name: 'ブタクサ属',
+                type: 'grass',
+                schedule: { 8: 'やや多い', 9: '多い', 10: '少ない' }
+            },
+            {
+                name: 'ヨモギ属',
+                type: 'grass',
+                schedule: { 8: '少ない', 9: '少ない', 10: '少ない' }
+            },
+            {
+                name: 'カナムグラ',
+                type: 'grass',
+                schedule: { 8: '少ない', 9: 'やや多い', 10: 'やや多い', 11: '少ない' }
+            }
+        ];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const currentMonth = new Date().getMonth() + 1;
+
+            // 花粉ごとのアイコンマッピング
+            const pollenIcons = {
+                'ハンノキ属': '🌳', 'スギ': '🌲', 'ヒノキ': '🎄',
+                'イネ科': '🌾', 'ブタクサ属': '🌿', 'ヨモギ属': '🍃', 'カナムグラ': '🍀'
+            };
+
+            // 月ごとのアイコンマッピング
+            const monthIcons = {
+                1: '🎍', 2: '💝', 3: '🌸', 4: '🌷', 5: '🎏', 6: '☔',
+                7: '🎋', 8: '🌻', 9: '🎑', 10: '🎃', 11: '🍁', 12: '🎄'
+            };
+
+            // ヘルパー関数
+            function getLevelClass(level) {
+                if (level === '多い') return 'high';
+                if (level === 'やや多い') return 'medium';
+                if (level === '少ない') return 'low';
+                return '';
+            }
+
+            // テーブルの自動生成
+            function renderTable() {
+                const tbody = document.getElementById('pollen-table-body');
+                tbody.innerHTML = ''; // クリア
+
+                POLLEN_DATA.forEach(plant => {
+                    const tr = document.createElement('tr');
+                    
+                    // 植物名セル
+                    const nameTd = document.createElement('td');
+                    nameTd.className = 'plant-name';
+                    nameTd.scope = 'row';
+                    nameTd.textContent = plant.name;
+                    tr.appendChild(nameTd);
+
+                    // 1月〜12月のセル
+                    for (let m = 1; m <= 12; m++) {
+                        const td = document.createElement('td');
+                        td.dataset.month = m;
+                        
+                        const level = plant.schedule[m];
+                        if (level) {
+                            const levelClass = getLevelClass(level);
+                            td.className = `${plant.type}-${levelClass}`; // 例: tree-high
+                            td.dataset.pollen = plant.name;
+                            td.dataset.level = level;
+                        }
+                        tr.appendChild(td);
+                    }
+                    tbody.appendChild(tr);
+                });
+            }
+
+            // 今月の花粉データを取得（データソースから直接取得）
+            function getCurrentMonthPollens() {
+                const pollens = [];
+                POLLEN_DATA.forEach(plant => {
+                    const level = plant.schedule[currentMonth];
+                    if (level) {
+                        pollens.push({
+                            name: plant.name,
+                            level: level,
+                            type: plant.type,
+                            levelClass: getLevelClass(level),
+                            icon: pollenIcons[plant.name] || '🌼'
+                        });
+                    }
+                });
+                
+                // レベルが高い順にソート
+                pollens.sort((a, b) => (CONFIG.levelOrder[b.level] || 0) - (CONFIG.levelOrder[a.level] || 0));
+                return pollens;
+            }
+
+            function highlightCurrentMonthColumn() {
+                const header = document.getElementById(`month-${currentMonth}`);
+                if (header) { header.classList.add('current-month-column'); }
+                // 生成されたセルに対して適用
+                document.querySelectorAll(`td[data-month="${currentMonth}"]`).forEach(cell => { 
+                    cell.classList.add('current-month-column'); 
+                });
+            }
+
+            function displayCurrentMonthInfo() {
+                const pollens = getCurrentMonthPollens();
+                const titleElement = document.getElementById('current-month-title');
+                const detailsContainer = document.getElementById('pollen-details');
+                const monthName = `${currentMonth}月`;
+                detailsContainer.innerHTML = '';
+                
+                if (pollens.length === 0) {
+                    titleElement.textContent = `！${monthName}は花粉の少ない時期です！`;
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = 'info-message';
+                    const p1 = document.createElement('p');
+                    p1.textContent = '現在は主要な花粉の飛散時期ではありません。';
+                    const p2 = document.createElement('p');
+                    p2.textContent = '比較的過ごしやすい時期ですが、お困りの際はお声がけください。';
+                    messageDiv.append(p1, p2);
+                    detailsContainer.appendChild(messageDiv);
+                } else {
+                    const mainPollen = pollens[0];
+                    titleElement.textContent = `！${monthName}は「${mainPollen.name}」などに注意！`;
+                    pollens.forEach(p => {
+                        const itemDiv = document.createElement('div');
+                        itemDiv.className = `pollen-item ${p.type}-${p.levelClass}`;
+                        if (p.level === '多い') {
+                            itemDiv.classList.add('pollen-item-high-alert');
+                        }
+                        const nameSpan = document.createElement('span');
+                        nameSpan.className = 'pollen-item-name';
+                        nameSpan.textContent = p.name;
+                        const levelSpan = document.createElement('span');
+                        levelSpan.className = 'pollen-item-level';
+                        levelSpan.textContent = `【${p.level}】`;
+                        itemDiv.append(nameSpan, levelSpan);
+                        detailsContainer.appendChild(itemDiv);
+                    });
+                }
+            }
+
+            // フルスクリーン花粉アラートを設定
+            function setupPollenAlertScreen() {
+                const pollens = getCurrentMonthPollens();
+                const monthIcon = document.getElementById('pollen-alert-icon');
+                const monthTitle = document.getElementById('pollen-alert-month');
+                const listContainer = document.getElementById('pollen-alert-list');
+
+                // 月別アイコンを設定
+                monthIcon.textContent = monthIcons[currentMonth] || '🌼';
+                monthTitle.textContent = `${currentMonth}月`;
+                listContainer.innerHTML = '';
+
+                pollens.forEach(p => {
+                    const item = document.createElement('div');
+                    item.className = 'pollen-alert-item';
+                    item.innerHTML = `
+                        <div class="pollen-alert-item-icon">${p.icon}</div>
+                        <div class="pollen-alert-item-info">
+                            <div class="pollen-alert-item-name">${p.name}</div>
+                            <div class="pollen-alert-item-level level-${p.levelClass}">${p.level}</div>
+                        </div>
+                    `;
+                    listContainer.appendChild(item);
+                });
+            }
+
+            // 時計表示の更新
+            function updateClock() {
+                const now = new Date();
+                
+                // 時計画面が表示されている時のみDOMを更新
+                const clockScreen = document.getElementById('clock-screen');
+                if (!clockScreen || !clockScreen.classList.contains('active')) {
+                    return; // 時計画面が非表示なら何もしない
+                }
+                
+                // 時間の更新
+                const hours = now.getHours().toString().padStart(2, '0');
+                const minutes = now.getMinutes().toString().padStart(2, '0');
+                const seconds = now.getSeconds().toString().padStart(2, '0');
+                
+                document.getElementById('clock-time-display').innerHTML = 
+                    `<span class="number">${hours}</span><ruby>時<rt>じ</rt></ruby>` +
+                    `<span class="number">${minutes}</span><ruby>分<rt>ふん</rt></ruby>` +
+                    `<span class="seconds-number">${seconds}</span><ruby class="seconds-kanji">秒<rt>びょう</rt></ruby>`;
+                
+                // 日付の更新
+                const month = now.getMonth() + 1;
+                const date = now.getDate();
+
+                document.getElementById('clock-date-display').innerHTML = 
+                    `<span class="number">${month}</span><ruby>月<rt>がつ</rt></ruby>` +
+                    `<span class="number">${date}</span><ruby>日<rt>にち</rt></ruby>`;
+
+                // 曜日の更新
+                const weekdays = ['日曜日', '月曜日', '火曜日', '水曜日', '木曜日', '金曜日', '土曜日'];
+                const weekdayRuby = ['にちようび', 'げつようび', 'かようび', 'すいようび', 'もくようび', 'きんようび', 'どようび'];
+                const dayOfWeek = now.getDay();
+                
+                document.getElementById('clock-weekday-main').textContent = weekdays[dayOfWeek];
+                document.getElementById('clock-weekday-ruby').textContent = weekdayRuby[dayOfWeek];
+            }
+
+            // 画面切り替えローテーション
+            let currentScreen = 0;
+            let rotationTimeoutId = null;
+            let weatherDataLoaded = false; // 天気データ読み込み状態
+            const screens = [
+                { id: null, duration: CONFIG.durations.main },                    // メイン画面
+                { id: 'pollen-alert-screen', duration: CONFIG.durations.alert },  // 花粉アラート
+                { id: 'tips-screen', duration: CONFIG.durations.tips },           // 対策ポイント(テキスト)
+                { id: 'mask-megane-screen', duration: CONFIG.durations.maskMegane }, // 対策ポイント(画像)
+                { id: 'billiard-screen', duration: CONFIG.durations.billiard },   // ビリヤードロゴ
+                { id: 'clock-screen', duration: CONFIG.durations.clock },         // 時計表示
+                { id: 'weather-screen', duration: CONFIG.durations.weather },     // 天気予報
+                { id: 'eye-frail-screen-1', duration: CONFIG.durations.eyeFrail1 }, // アイフレイル1
+                { id: 'eye-frail-screen-2', duration: CONFIG.durations.eyeFrail2 }, // アイフレイル2
+                { id: 'eye-frail-screen-3', duration: CONFIG.durations.eyeFrail3 }, // アイフレイル3
+                { id: 'eye-frail-screen-4', duration: CONFIG.durations.eyeFrail4 }, // アイフレイル4
+                { id: 'logo-animation-screen', duration: CONFIG.durations.logo },  // ロゴアニメーション（パーティクル）
+                { id: 'famicom-logo-screen', duration: CONFIG.durations.famicom }  // ファミコン風ロゴ
+            ];
+
+            function showScreen(index) {
+                // すべてのオーバーレイを非表示
+                document.querySelectorAll('.fullscreen-overlay').forEach(el => {
+                    el.classList.remove('active');
+                });
+
+                // 指定された画面を表示
+                if (screens[index].id) {
+                    document.getElementById(screens[index].id).classList.add('active');
+                    
+                    // ロゴアニメーション画面が表示されたらアニメーションを開始
+                    if (screens[index].id === 'logo-animation-screen') {
+                        startParticleAnimation();
+                        stopBilliardAnimation();
+                        stopFamicomAnimation();
+                    } else if (screens[index].id === 'billiard-screen') {
+                        // ビリヤードアニメーション画面
+                        stopParticleAnimation();
+                        startBilliardAnimation();
+                        stopFamicomAnimation();
+                    } else if (screens[index].id === 'famicom-logo-screen') {
+                        // ファミコン風ロゴ画面
+                        stopParticleAnimation();
+                        stopBilliardAnimation();
+                        startFamicomAnimation();
+                    } else if (screens[index].id === 'weather-screen') {
+                        // 天気予報画面
+                        stopParticleAnimation();
+                        stopBilliardAnimation();
+                        stopFamicomAnimation();
+                        fetchWeatherData();
+                    } else {
+                        // その他の画面ではアニメーションを停止
+                        stopParticleAnimation();
+                        stopBilliardAnimation();
+                        stopFamicomAnimation();
+                    }
+                } else {
+                    // メイン画面の場合もアニメーションを停止
+                    stopParticleAnimation();
+                    stopBilliardAnimation();
+                    stopFamicomAnimation();
+                }
+            }
+
+            function rotateScreens() {
+                showScreen(currentScreen);
+                
+                // 天気予報画面でデータ未取得の場合は3秒で次へ
+                let duration = screens[currentScreen].duration;
+                if (screens[currentScreen].id === 'weather-screen' && !weatherDataLoaded) {
+                    duration = CONFIG.durations.weatherError;
+                }
+                
+                rotationTimeoutId = setTimeout(() => {
+                    currentScreen = (currentScreen + 1) % screens.length;
+                    
+                    // ロゴアニメーション(最後の画面)が終わったら、ページをリロード
+                    if (currentScreen === 0) {
+                        location.reload();
+                        return; // リロード後は処理を続けない
+                    }
+                    
+                    rotateScreens();
+                }, duration);
+            }
+
+            // スペースキーで次の画面に切り替え
+            function goToNextScreen() {
+                // 現在のタイマーをクリア
+                if (rotationTimeoutId) {
+                    clearTimeout(rotationTimeoutId);
+                }
+                // 次の画面へ
+                currentScreen = (currentScreen + 1) % screens.length;
+                // ローテーション再開
+                rotateScreens();
+            }
+
+            // スペースキーのイベントリスナー
+            document.addEventListener('keydown', (e) => {
+                if (e.code === 'Space') {
+                    e.preventDefault(); // スクロール防止
+                    goToNextScreen();
+                }
+            });
+
+            // ========== ビリヤードロゴアニメーション ==========
+            const billiardBalls = [];
+            const billiardCueBall = document.getElementById('billiard-cue-ball');
+            const billiardCueStick = document.getElementById('billiard-cue-stick');
+            const billiardImpact = document.getElementById('billiard-impact');
+            const billiardShineLine = document.getElementById('billiard-shine-line');
+            const billiardSparkles = [
+                document.getElementById('billiard-sparkle1'),
+                document.getElementById('billiard-sparkle2'),
+                document.getElementById('billiard-sparkle3'),
+                document.getElementById('billiard-sparkle4'),
+                document.getElementById('billiard-sparkle5')
+            ];
+            
+            const billiardTableWidth = 1920;
+            const billiardTableHeight = 1080;
+            const billiardPadding = 80;
+            
+            // ナインボールのダイヤモンド配置（物理的な位置）
+            const billiardRackSlots = [
+                { x: 1050, y: 540 },
+                { x: 1200, y: 440 },
+                { x: 1200, y: 640 },
+                { x: 1350, y: 340 },
+                { x: 1350, y: 540 },
+                { x: 1350, y: 740 },
+                { x: 1500, y: 440 },
+                { x: 1500, y: 640 },
+                { x: 1650, y: 540 },
+            ];
+            
+            // シャッフルマップ
+            const billiardShuffleMap = [2, 7, 5, 6, 0, 3, 8, 1, 4];
+            
+            // 手玉の位置
+            const billiardCueBallStart = { x: 300, y: 540 };
+            const billiardCueBallImpactPos = { x: 950, y: 540 };
+            
+            // 横一列の位置（奇数回目用）
+            const billiardLinePositions = [];
+            const billiardLineStartX = 160;
+            const billiardLineSpacing = 190;
+            for (let i = 0; i < 9; i++) {
+                billiardLinePositions.push({ x: billiardLineStartX + i * billiardLineSpacing, y: 540 });
+            }
+            
+            // 3行配置の位置（偶数回目用）
+            const billiardMultiLinePositions = [
+                { x: 660, y: 340 }, { x: 850, y: 340 }, { x: 1040, y: 340 }, { x: 1230, y: 340 },
+                { x: 755, y: 540 }, { x: 945, y: 540 }, { x: 1135, y: 540 },
+                { x: 850, y: 740 }, { x: 1040, y: 740 },
+            ];
+            
+            let billiardCurrentFinalPositions = billiardLinePositions;
+            let billiardIsLinePattern = false;
+            let billiardBallPaths = [];
+            let billiardAnimationPhase = 'init';
+            let billiardPhaseStartTime = 0;
+            let billiardAnimationId = null;
+            let billiardStartTime = 0;
+            let billiardShineTriggered = false;
+            let isBilliardAnimating = false;
+            
+            function billiardGenerateReflectionPath(startPos, endPos, reflections) {
+                const path = [{ x: startPos.x, y: startPos.y }];
+                for (let i = 0; i < reflections; i++) {
+                    let nextX, nextY;
+                    const wallChoice = Math.floor(Math.random() * 4);
+                    switch (wallChoice) {
+                        case 0: nextX = billiardPadding + Math.random() * (billiardTableWidth - billiardPadding * 2); nextY = billiardPadding; break;
+                        case 1: nextX = billiardPadding + Math.random() * (billiardTableWidth - billiardPadding * 2); nextY = billiardTableHeight - billiardPadding; break;
+                        case 2: nextX = billiardPadding; nextY = billiardPadding + Math.random() * (billiardTableHeight - billiardPadding * 2); break;
+                        case 3: nextX = billiardTableWidth - billiardPadding; nextY = billiardPadding + Math.random() * (billiardTableHeight - billiardPadding * 2); break;
+                    }
+                    path.push({ x: nextX, y: nextY });
+                }
+                path.push({ x: endPos.x, y: endPos.y });
+                return path;
+            }
+            
+            function billiardGenerateAllPaths() {
+                billiardBallPaths = [];
+                for (let i = 0; i < 9; i++) {
+                    const startSlot = billiardShuffleMap[i];
+                    const startPos = billiardRackSlots[startSlot];
+                    const endPos = billiardCurrentFinalPositions[i];
+                    const reflections = 2 + Math.floor(Math.random() * 3);
+                    const path = billiardGenerateReflectionPath(startPos, endPos, reflections);
+                    billiardBallPaths.push(path);
+                }
+            }
+            
+            function billiardGetPositionOnPath(path, progress) {
+                if (progress <= 0) return path[0];
+                if (progress >= 1) return path[path.length - 1];
+                const segments = [];
+                let totalLength = 0;
+                for (let i = 0; i < path.length - 1; i++) {
+                    const dx = path[i + 1].x - path[i].x;
+                    const dy = path[i + 1].y - path[i].y;
+                    const length = Math.sqrt(dx * dx + dy * dy);
+                    segments.push(length);
+                    totalLength += length;
+                }
+                const targetLength = progress * totalLength;
+                let currentLength = 0;
+                for (let i = 0; i < segments.length; i++) {
+                    if (currentLength + segments[i] >= targetLength) {
+                        const segmentProgress = (targetLength - currentLength) / segments[i];
+                        return {
+                            x: path[i].x + (path[i + 1].x - path[i].x) * segmentProgress,
+                            y: path[i].y + (path[i + 1].y - path[i].y) * segmentProgress
+                        };
+                    }
+                    currentLength += segments[i];
+                }
+                return path[path.length - 1];
+            }
+            
+            function billiardTriggerShineEffect() {
+                if (billiardIsLinePattern) {
+                    billiardShineLine.style.top = '390px';
+                    billiardShineLine.style.height = '300px';
+                } else {
+                    billiardShineLine.style.top = '240px';
+                    billiardShineLine.style.height = '600px';
+                }
+                billiardShineLine.classList.add('animate');
+                
+                let sparklePositions;
+                if (billiardIsLinePattern) {
+                    sparklePositions = [
+                        { x: 250, y: 450, delay: 100 }, { x: 550, y: 500, delay: 200 },
+                        { x: 900, y: 440, delay: 150 }, { x: 1300, y: 490, delay: 250 }, { x: 1650, y: 460, delay: 300 }
+                    ];
+                } else {
+                    sparklePositions = [
+                        { x: 750, y: 280, delay: 100 }, { x: 1140, y: 280, delay: 180 },
+                        { x: 850, y: 480, delay: 250 }, { x: 750, y: 680, delay: 320 }, { x: 1140, y: 680, delay: 400 }
+                    ];
+                }
+                billiardSparkles.forEach((sparkle, i) => {
+                    sparkle.style.left = `${sparklePositions[i].x}px`;
+                    sparkle.style.top = `${sparklePositions[i].y}px`;
+                    setTimeout(() => { sparkle.classList.add('animate'); }, sparklePositions[i].delay);
+                });
+            }
+            
+            function billiardResetShineEffect() {
+                billiardShineLine.classList.remove('animate');
+                billiardSparkles.forEach(sparkle => { sparkle.classList.remove('animate'); });
+                billiardShineTriggered = false;
+            }
+            
+            function billiardEaseOutCubic(t) {
+                return 1 - Math.pow(1 - t, 3);
+            }
+            
+            function initBilliardBalls() {
+                billiardBalls.length = 0;
+                for (let i = 1; i <= 9; i++) {
+                    billiardBalls.push(document.getElementById(`billiard-ball-${i}`));
+                }
+            }
+            
+            function resetBilliardAnimation() {
+                if (billiardAnimationId) {
+                    cancelAnimationFrame(billiardAnimationId);
+                }
+                
+                billiardIsLinePattern = !billiardIsLinePattern;
+                billiardCurrentFinalPositions = billiardIsLinePattern ? billiardLinePositions : billiardMultiLinePositions;
+                
+                billiardGenerateAllPaths();
+                
+                billiardBalls.forEach((ball, i) => {
+                    const startSlot = billiardShuffleMap[i];
+                    ball.style.left = `${billiardRackSlots[startSlot].x}px`;
+                    ball.style.top = `${billiardRackSlots[startSlot].y}px`;
+                    ball.style.opacity = '1';
+                });
+                
+                billiardCueBall.style.left = `${billiardCueBallStart.x}px`;
+                billiardCueBall.style.top = `${billiardCueBallStart.y}px`;
+                billiardCueBall.style.opacity = '1';
+                billiardCueStick.style.opacity = '0';
+                billiardImpact.classList.remove('show');
+                billiardResetShineEffect();
+                
+                billiardAnimationPhase = 'init';
+                billiardStartTime = performance.now();
+                billiardPhaseStartTime = billiardStartTime;
+            }
+            
+            function animateBilliard() {
+                if (!isBilliardAnimating) return;
+                
+                const now = performance.now();
+                const elapsed = (now - billiardStartTime) / 1000;
+                const phaseElapsed = (now - billiardPhaseStartTime) / 1000;
+                
+                if (elapsed >= 15) {
+                    resetBilliardAnimation();
+                    animateBilliard();
+                    return;
+                }
+                
+                if (elapsed >= 12.5 && !billiardShineTriggered) {
+                    billiardTriggerShineEffect();
+                    billiardShineTriggered = true;
+                }
+                
+                switch (billiardAnimationPhase) {
+                    case 'init':
+                        if (phaseElapsed > 2) {
+                            billiardCueStick.style.opacity = '1';
+                            billiardCueStick.style.left = '-250px';
+                            billiardCueStick.style.top = '532px';
+                            const pullProgress = Math.min((phaseElapsed - 2) / 1, 1);
+                            billiardCueStick.style.left = `${-250 - pullProgress * 100}px`;
+                        }
+                        if (phaseElapsed >= 3) {
+                            billiardAnimationPhase = 'break';
+                            billiardPhaseStartTime = now;
+                        }
+                        break;
+                        
+                    case 'break':
+                        const breakProgress = Math.min(phaseElapsed / 0.2, 1);
+                        billiardCueStick.style.left = `${-350 + breakProgress * 250}px`;
+                        if (breakProgress >= 0.5) billiardCueStick.style.opacity = '0';
+                        
+                        const cueBallX = billiardCueBallStart.x + breakProgress * (billiardCueBallImpactPos.x - billiardCueBallStart.x);
+                        billiardCueBall.style.left = `${cueBallX}px`;
+                        
+                        if (cueBallX >= billiardCueBallImpactPos.x - 50 && !billiardImpact.classList.contains('show')) {
+                            billiardImpact.style.left = `${billiardCueBallImpactPos.x}px`;
+                            billiardImpact.style.top = `${billiardCueBallImpactPos.y}px`;
+                            billiardImpact.classList.add('show');
+                            billiardCueBall.style.opacity = '0';
+                            billiardAnimationPhase = 'reflect';
+                            billiardPhaseStartTime = now;
+                        }
+                        break;
+                        
+                    case 'reflect':
+                        const reflectProgress = Math.min(phaseElapsed / 8, 1);
+                        billiardBalls.forEach((ball, i) => {
+                            const speedVariation = 0.9 + (i % 3) * 0.05;
+                            const adjustedProgress = Math.min(reflectProgress * speedVariation, 1);
+                            const easedProgress = billiardEaseOutCubic(adjustedProgress);
+                            const pos = billiardGetPositionOnPath(billiardBallPaths[i], easedProgress);
+                            ball.style.left = `${pos.x}px`;
+                            ball.style.top = `${pos.y}px`;
+                        });
+                        
+                        if (reflectProgress >= 1) {
+                            billiardAnimationPhase = 'hold';
+                            billiardPhaseStartTime = now;
+                            billiardBalls.forEach((ball, i) => {
+                                ball.style.left = `${billiardCurrentFinalPositions[i].x}px`;
+                                ball.style.top = `${billiardCurrentFinalPositions[i].y}px`;
+                            });
+                        }
+                        break;
+                        
+                    case 'hold':
+                        if (elapsed >= 14) {
+                            billiardAnimationPhase = 'fadeOut';
+                            billiardPhaseStartTime = now;
+                        }
+                        break;
+                        
+                    case 'fadeOut':
+                        const fadeProgress = Math.min(phaseElapsed / 1, 1);
+                        billiardBalls.forEach(ball => { ball.style.opacity = 1 - fadeProgress; });
+                        if (fadeProgress >= 1) billiardAnimationPhase = 'done';
+                        break;
+                        
+                    case 'done':
+                        break;
+                }
+                
+                billiardAnimationId = requestAnimationFrame(animateBilliard);
+            }
+            
+            function startBilliardAnimation() {
+                if (isBilliardAnimating) return;
+                isBilliardAnimating = true;
+                initBilliardBalls();
+                resetBilliardAnimation();
+                animateBilliard();
+            }
+            
+            function stopBilliardAnimation() {
+                if (billiardAnimationId) {
+                    cancelAnimationFrame(billiardAnimationId);
+                    billiardAnimationId = null;
+                }
+                isBilliardAnimating = false;
+            }
+
+            // ========== パーティクルロゴアニメーション (省略: 前回のコードと同じ) ==========
+            const textPixelData = [
+                [20,[[20,28],[39,41],[50,53],[59,67],[79,87],[90,98]]],
+                [21,[[20,28],[39,41],[50,53],[59,67],[79,87],[90,98]]],
+                [22,[[20,28],[39,41],[48,48],[52,54],[59,68],[79,79],[83,84],[87,88],[96,98]]],
+                [23,[[25,28],[39,41],[48,48],[52,54],[65,67],[79,79],[83,84],[87,88],[96,98]]],
+                [24,[[26,28],[39,41],[50,51],[65,67],[72,73],[79,88],[91,92],[95,97]]],
+                [25,[[23,26],[39,41],[50,51],[65,67],[72,73],[79,88],[91,92],[94,97]]],
+                [26,[[23,26],[39,41],[65,67],[72,73],[79,80],[83,84],[87,88],[93,95]]],
+                [27,[[23,24],[39,41],[65,67],[72,73],[79,79],[83,84],[87,88],[93,96]]],
+                [28,[[23,24],[39,41],[61,73],[79,80],[83,84],[86,88],[90,99]]],
+                [29,[[17,19],[23,26],[31,32],[39,41],[59,73],[79,88],[90,99]]],
+                [30,[[17,19],[23,26],[31,32],[39,41],[59,74],[82,84],[92,94],[97,99]]],
+                [31,[[17,19],[24,28],[31,34],[39,41],[51,53],[57,60],[64,66],[71,75],[83,84],[93,94],[97,99]]],
+                [32,[[16,19],[25,28],[32,34],[39,41],[51,53],[57,60],[64,66],[72,75],[79,87],[93,94],[97,98]]],
+                [33,[[15,19],[26,28],[32,34],[39,41],[51,53],[57,59],[64,65],[72,75],[79,87],[93,94],[97,98]]],
+                [34,[[15,18],[26,28],[32,34],[39,41],[49,53],[57,59],[62,65],[70,73],[79,86],[93,94]]],
+                [35,[[15,18],[26,28],[32,34],[39,43],[49,53],[57,59],[62,65],[70,72],[83,84],[93,94]]],
+                [36,[[15,18],[20,28],[32,34],[40,51],[59,65],[68,72],[83,84],[93,94]]],
+                [37,[[20,26],[40,51],[59,63],[67,72],[78,87],[92,94]]],
+                [38,[[20,26],[42,49],[59,63],[67,70],[78,87],[90,94]]],
+                [39,[[90,94]]],
+                [45,[[50,53],[74,77]]],
+                [46,[[17,24],[29,32],[50,53],[74,77],[85,91]]],
+                [47,[[17,24],[29,32],[50,53],[74,77],[85,91]]],
+                [48,[[17,24],[30,32],[50,53],[63,65],[74,77],[85,91]]],
+                [49,[[17,24],[30,35],[45,53],[63,65],[74,77],[85,91]]],
+                [50,[[21,23],[30,35],[44,59],[63,66],[74,77],[89,91]]],
+                [51,[[20,23],[32,37],[44,60],[64,66],[74,77],[89,92]]],
+                [52,[[19,22],[32,38],[44,60],[64,67],[74,77],[89,93]]],
+                [53,[[19,22],[32,38],[49,52],[58,60],[64,67],[74,77],[89,93]]],
+                [54,[[18,20],[32,38],[49,52],[58,60],[64,67],[74,77],[80,81],[89,93]]],
+                [55,[[17,20],[32,34],[37,38],[49,52],[58,60],[65,69],[74,77],[80,81],[89,93]]],
+                [56,[[17,20],[32,34],[37,38],[48,51],[58,60],[66,69],[74,81],[89,93]]],
+                [57,[[17,20],[32,34],[48,50],[58,60],[66,69],[74,81],[89,93]]],
+                [58,[[17,20],[32,34],[48,50],[58,60],[66,69],[74,79],[89,93]]],
+                [59,[[17,20],[32,34],[47,50],[58,60],[89,93]]],
+                [60,[[17,20],[31,34],[47,50],[58,60],[87,91]]],
+                [61,[[17,21],[31,34],[46,49],[57,60],[87,91]]],
+                [62,[[17,22],[29,34],[45,49],[56,60],[84,90]]],
+                [63,[[19,33],[45,48],[52,59],[78,90]]],
+                [64,[[19,32],[44,48],[52,59],[78,90]]],
+                [65,[[21,31],[44,47],[52,59],[78,88]]],
+                [66,[[21,30],[44,46],[52,57],[78,85]]],
+                [71,[[66,69],[81,83]]],
+                [72,[[29,38],[41,53],[59,69],[81,83]]],
+                [73,[[29,38],[41,53],[59,69],[73,77],[81,83]]],
+                [74,[[29,38],[41,43],[51,53],[59,69],[73,77],[81,83]]],
+                [75,[[29,31],[36,38],[41,43],[51,53],[63,66],[73,78],[81,83]]],
+                [76,[[29,31],[36,38],[41,43],[51,53],[64,66],[75,78],[81,83]]],
+                [77,[[29,31],[36,38],[41,53],[64,66],[76,78],[81,83]]],
+                [78,[[29,38],[41,53],[59,70],[81,83]]],
+                [79,[[29,38],[41,43],[51,53],[59,70],[72,75],[81,83]]],
+                [80,[[29,38],[41,43],[51,53],[59,70],[72,76],[81,83]]],
+                [81,[[29,31],[36,38],[41,43],[51,53],[64,66],[72,77],[81,83]]],
+                [82,[[29,31],[36,38],[41,53],[64,67],[74,77],[81,83]]],
+                [83,[[29,31],[36,38],[41,53],[63,68],[81,83]]],
+                [84,[[29,38],[41,43],[45,49],[52,53],[61,70],[81,85]]],
+                [85,[[29,38],[41,42],[46,48],[52,53],[61,70],[81,86]]],
+                [86,[[29,38],[41,42],[46,48],[51,54],[60,70],[72,86]]],
+                [87,[[29,31],[36,38],[41,42],[47,54],[59,66],[69,70],[72,86]]],
+                [88,[[29,31],[36,38],[41,42],[47,53],[59,62],[64,66],[72,83]]],
+                [89,[[29,31],[36,38],[41,42],[47,51],[59,61],[64,66],[81,83]]],
+                [90,[[29,31],[35,38],[41,42],[48,51],[59,60],[64,66],[81,83]]],
+                [91,[[29,38],[41,43],[45,47],[49,52],[64,66],[81,83]]],
+                [92,[[29,38],[40,47],[49,54],[64,66],[81,83]]],
+                [93,[[29,38],[40,47],[51,54],[64,66],[81,83]]],
+                [94,[[40,45],[51,54],[64,66],[81,83]]]
+            ];
+
+            const particleCanvas = document.getElementById('particleCanvas');
+            const particleCtx = particleCanvas.getContext('2d');
+            
+            particleCanvas.width = 1200;
+            particleCanvas.height = 1200;
+            
+            const scale = 1200 / 1024;
+            const blockSize = 9 * scale;
+            
+            // 文字座標を取得
+            const targetPositions = [];
+            textPixelData.forEach(([gridY, segments]) => {
+                segments.forEach(([startGridX, endGridX]) => {
+                    for (let gridX = startGridX; gridX <= endGridX; gridX++) {
+                        if ((gridX + gridY) % 3 === 0) {
+                            targetPositions.push({
+                                x: gridX * blockSize + blockSize / 2,
+                                y: gridY * blockSize + blockSize / 2
+                            });
+                        }
+                    }
+                });
+            });
+            
+            const LOOP_DURATION = 15000;
+            
+            // グラデーションをキャッシュ
+            const gradientCache = {};
+            function getGradient(size, alpha) {
+                const key = `${size}_${Math.round(alpha * 10)}`;
+                if (!gradientCache[key]) {
+                    const grad = particleCtx.createRadialGradient(0, 0, 0, 0, 0, size * 3);
+                    grad.addColorStop(0, `rgba(255, 230, 150, ${alpha})`);
+                    grad.addColorStop(0.3, `rgba(255, 200, 100, ${alpha * 0.9})`);
+                    grad.addColorStop(0.6, `rgba(255, 170, 50, ${alpha * 0.6})`);
+                    grad.addColorStop(1, 'rgba(255, 140, 0, 0)');
+                    gradientCache[key] = grad;
+                }
+                return gradientCache[key];
+            }
+            
+            // パーティクルクラス
+            class Particle {
+                constructor(targetX, targetY, index) {
+                    this.index = index;
+                    this.targetX = targetX;
+                    this.targetY = targetY;
+                    this.reset();
+                }
+                
+                reset() {
+                    this.startX = Math.random() * particleCanvas.width;
+                    this.startY = Math.random() * particleCanvas.height;
+                    this.x = this.startX;
+                    this.y = this.startY;
+                    
+                    this.vx = (Math.random() - 0.5) * 0.6;
+                    this.vy = (Math.random() - 0.5) * 0.6;
+                    this.floatOffset = Math.random() * Math.PI * 2;
+                    
+                    this.size = Math.random() * 1.5 + 2;
+                    this.dynamicSize = this.size;
+                    this.alpha = 0;
+                    this.brightness = 0;
+                    
+                    this.flickerSpeed = Math.random() * 0.003 + 0.002;
+                    this.flickerOffset = Math.random() * Math.PI * 2;
+                    
+                    this.appearDelay = this.index * 3;
+                    this.gatherDelay = Math.random() * 1200;
+                    this.angle = Math.atan2(this.startY - this.targetY, this.startX - this.targetX);
+                }
+                
+                update(elapsed) {
+                    this.brightness = 0.8 + Math.sin(elapsed * this.flickerSpeed + this.flickerOffset) * 0.2;
+                    
+                    if (elapsed < 3000) {
+                        if (elapsed > this.appearDelay) {
+                            this.alpha = Math.min(1, (elapsed - this.appearDelay) / 800);
+                        }
+                        this.x += this.vx + Math.sin(elapsed * 0.001 + this.floatOffset) * 0.3;
+                        this.y += this.vy + Math.cos(elapsed * 0.001 + this.floatOffset) * 0.3;
+                        
+                        if (this.x < 0 || this.x > particleCanvas.width) this.vx *= -1;
+                        if (this.y < 0 || this.y > particleCanvas.height) this.vy *= -1;
+                        
+                    } else if (elapsed < 8000) {
+                        const t = elapsed - 3000;
+                        if (t >= this.gatherDelay) {
+                            const p = Math.min(1, (t - this.gatherDelay) / (5000 - this.gatherDelay));
+                            const eased = 1 - Math.pow(1 - p, 3);
+                            this.x += (this.targetX - this.x) * eased * 0.12;
+                            this.y += (this.targetY - this.y) * eased * 0.12;
+                            this.dynamicSize = this.size * (1 + eased * 2);
+                        } else {
+                            this.x += this.vx * 0.5;
+                            this.y += this.vy * 0.5;
+                            this.dynamicSize = this.size;
+                        }
+                        this.alpha = 1;
+                        
+                    } else if (elapsed < 12000) {
+                        const wobble = Math.sin(elapsed * 0.002 + this.floatOffset) * 0.8;
+                        this.x = this.targetX + wobble;
+                        this.y = this.targetY + Math.cos(elapsed * 0.0025 + this.floatOffset) * 0.8;
+                        this.dynamicSize = this.size * 3;
+                        this.alpha = 1;
+                        
+                    } else {
+                        const p = (elapsed - 12000) / 3000;
+                        const eased = p * p;
+                        const distance = 500 * eased;
+                        this.x = this.targetX + Math.cos(this.angle) * distance;
+                        this.y = this.targetY + Math.sin(this.angle) * distance;
+                        this.dynamicSize = this.size * (3 - 2 * eased);
+                        this.alpha = 1 - eased;
+                    }
+                }
+                
+                draw(ctx) {
+                    if (this.alpha <= 0.05) return;
+                    
+                    const finalAlpha = this.alpha * this.brightness;
+                    
+                    ctx.save();
+                    ctx.translate(this.x, this.y);
+                    
+                    ctx.fillStyle = getGradient(this.dynamicSize, finalAlpha);
+                    ctx.fillRect(-this.dynamicSize * 3, -this.dynamicSize * 3, this.dynamicSize * 6, this.dynamicSize * 6);
+                    
+                    ctx.globalAlpha = finalAlpha;
+                    ctx.fillStyle = 'rgb(255, 240, 200)';
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.dynamicSize * 0.6, 0, 6.28);
+                    ctx.fill();
+                    
+                    ctx.restore();
+                }
+            }
+            
+            // パーティクルを生成
+            const particles = targetPositions.map((pos, i) => new Particle(pos.x, pos.y, i));
+            
+            let particleStartTime = null;
+            let particleAnimationId = null;
+            let isParticleAnimating = false;
+            
+            function resetParticleAnimation() {
+                particleStartTime = Date.now();
+                particles.forEach(p => p.reset());
+            }
+            
+            function startParticleAnimation() {
+                if (isParticleAnimating) return; // 既に実行中なら何もしない
+                isParticleAnimating = true;
+                resetParticleAnimation();
+                animateParticles();
+            }
+            
+            function stopParticleAnimation() {
+                if (particleAnimationId) {
+                    cancelAnimationFrame(particleAnimationId);
+                    particleAnimationId = null;
+                }
+                isParticleAnimating = false;
+            }
+            
+            function animateParticles() {
+                if (!isParticleAnimating) return; // 停止フラグが立っていたら終了
+                
+                if (!particleStartTime) particleStartTime = Date.now();
+                
+                const now = Date.now();
+                const elapsed = (now - particleStartTime) % LOOP_DURATION;
+                
+                // 背景クリア
+                particleCtx.fillStyle = '#000000';
+                particleCtx.fillRect(0, 0, particleCanvas.width, particleCanvas.height);
+                
+                // パーティクルを更新・描画
+                particles.forEach(p => {
+                    p.update(elapsed);
+                    p.draw(particleCtx);
+                });
+                
+                particleAnimationId = requestAnimationFrame(animateParticles);
+            }
+
+            // ========== ファミコン風ロゴアニメーション ==========
+            const famicomCanvas = document.getElementById('famicomCanvas');
+            const famicomCtx = famicomCanvas.getContext('2d');
+            
+            // 1920x1080 表示
+            famicomCanvas.width = 1920;
+            famicomCanvas.height = 1080;
+            
+            // ファミコン風カラーパレット
+            const FC_PALETTE = {
+                black: '#000000',
+                white: '#FCFCFC',
+                red: '#F83800',
+                blue: '#0058F8',
+                cyan: '#00E8D8',
+                green: '#00A800',
+                yellow: '#F8B800',
+                orange: '#FCA044',
+                pink: '#F878F8',
+                purple: '#6844FC'
+            };
+            
+            // 文字ごとの色（ファミコン風にカラフルに）
+            const famicomCharColors = [
+                FC_PALETTE.cyan,    // ふ
+                FC_PALETTE.green,   // じ
+                FC_PALETTE.yellow,  // み
+                FC_PALETTE.orange,  // 野
+                FC_PALETTE.pink,    // ひ
+                FC_PALETTE.cyan,    // か
+                FC_PALETTE.green,   // り
+                FC_PALETTE.white,   // 眼
+                FC_PALETTE.yellow   // 科
+            ];
+            
+            const famicomText = 'ふじみ野ひかり眼科';
+            const famicomPixelSize = 10;
+            const famicomFontSize = 200;
+            
+            // 文字のピクセルデータを取得
+            function getFamicomTextPixels(text, fontSize) {
+                const offCanvas = document.createElement('canvas');
+                const offCtx = offCanvas.getContext('2d');
+                
+                offCanvas.width = famicomCanvas.width;
+                offCanvas.height = famicomCanvas.height;
+                
+                offCtx.fillStyle = '#000';
+                offCtx.fillRect(0, 0, offCanvas.width, offCanvas.height);
+                
+                offCtx.font = `bold ${fontSize}px "Hiragino Kaku Gothic Pro", "メイリオ", sans-serif`;
+                offCtx.fillStyle = '#FFF';
+                offCtx.textAlign = 'center';
+                offCtx.textBaseline = 'middle';
+                offCtx.fillText(text, offCanvas.width / 2, offCanvas.height / 2);
+                
+                const imageData = offCtx.getImageData(0, 0, offCanvas.width, offCanvas.height);
+                const pixels = [];
+                
+                for (let y = 0; y < offCanvas.height; y += famicomPixelSize) {
+                    for (let x = 0; x < offCanvas.width; x += famicomPixelSize) {
+                        const i = (y * offCanvas.width + x) * 4;
+                        if (imageData.data[i] > 128) {
+                            const charIndex = getFamicomCharIndex(x, offCanvas.width, text.length);
+                            pixels.push({
+                                x: x,
+                                y: y,
+                                color: famicomCharColors[charIndex] || FC_PALETTE.white
+                            });
+                        }
+                    }
+                }
+                
+                return pixels;
+            }
+            
+            // X座標から文字インデックスを推定
+            function getFamicomCharIndex(x, canvasWidth, charCount) {
+                const textWidth = charCount * famicomFontSize * 0.9;
+                const startX = (canvasWidth - textWidth) / 2;
+                const charWidth = textWidth / charCount;
+                const index = Math.floor((x - startX) / charWidth);
+                return Math.max(0, Math.min(charCount - 1, index));
+            }
+            
+            // ピクセルデータ
+            let famicomAllPixels = [];
+            let famicomPixelsByRow = {};
+            
+            // 初期化
+            function initFamicom() {
+                famicomAllPixels = getFamicomTextPixels(famicomText, famicomFontSize);
+                
+                famicomPixelsByRow = {};
+                famicomAllPixels.forEach(p => {
+                    if (!famicomPixelsByRow[p.y]) {
+                        famicomPixelsByRow[p.y] = [];
+                    }
+                    famicomPixelsByRow[p.y].push(p);
+                });
+            }
+            
+            // アニメーション状態
+            let famicomStartTime = null;
+            let famicomAnimationId = null;
+            let isFamicomAnimating = false;
+            const FAMICOM_LOOP_DURATION = 15000; // 15秒ループ
+            
+            // 8bit風キラリンエフェクト
+            function drawFamicomSparkle(x, y, size, progress) {
+                const alpha = Math.sin(progress * Math.PI);
+                famicomCtx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+                
+                const s = size * (0.5 + progress * 0.5);
+                famicomCtx.fillRect(x - s, y - famicomPixelSize/2, s * 2, famicomPixelSize);
+                famicomCtx.fillRect(x - famicomPixelSize/2, y - s, famicomPixelSize, s * 2);
+            }
+            
+            // スキャンライン効果
+            function drawFamicomScanlines() {
+                famicomCtx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+                for (let y = 0; y < famicomCanvas.height; y += 4) {
+                    famicomCtx.fillRect(0, y, famicomCanvas.width, 2);
+                }
+            }
+            
+            // メイン描画
+            function drawFamicom(timestamp) {
+                if (!isFamicomAnimating) return;
+                
+                if (!famicomStartTime) famicomStartTime = timestamp;
+                const elapsed = (timestamp - famicomStartTime) % FAMICOM_LOOP_DURATION;
+                const progress = elapsed / FAMICOM_LOOP_DURATION;
+                
+                // 背景クリア
+                famicomCtx.fillStyle = FC_PALETTE.black;
+                famicomCtx.fillRect(0, 0, famicomCanvas.width, famicomCanvas.height);
+                
+                const rows = Object.keys(famicomPixelsByRow).map(Number).sort((a, b) => b - a);
+                const totalRows = rows.length;
+                
+                if (progress < 0.6) {
+                    // 積み上げフェーズ
+                    const buildProgress = progress / 0.6;
+                    const rowsToShow = Math.floor(totalRows * buildProgress);
+                    
+                    for (let i = 0; i < rowsToShow; i++) {
+                        const row = rows[i];
+                        const pixels = famicomPixelsByRow[row];
+                        
+                        pixels.forEach(p => {
+                            famicomCtx.fillStyle = p.color;
+                            famicomCtx.fillRect(p.x, p.y, famicomPixelSize - 1, famicomPixelSize - 1);
+                        });
+                    }
+                    
+                    // 現在積み上げ中の行（アニメーション効果）
+                    if (rowsToShow < totalRows) {
+                        const currentRow = rows[rowsToShow];
+                        const rowProgress = (buildProgress * totalRows) % 1;
+                        const pixels = famicomPixelsByRow[currentRow];
+                        
+                        pixels.forEach((p, idx) => {
+                            if (idx / pixels.length < rowProgress * 1.5) {
+                                famicomCtx.fillStyle = p.color;
+                                const dropOffset = Math.max(0, (1 - rowProgress * 2) * 50);
+                                famicomCtx.fillRect(p.x, p.y - dropOffset, famicomPixelSize - 1, famicomPixelSize - 1);
+                            }
+                        });
+                    }
+                    
+                } else if (progress < 0.9) {
+                    // 完成表示 + キラリン
+                    
+                    famicomAllPixels.forEach(p => {
+                        famicomCtx.fillStyle = p.color;
+                        famicomCtx.fillRect(p.x, p.y, famicomPixelSize - 1, famicomPixelSize - 1);
+                    });
+                    
+                    // キラリンエフェクト（0.6-0.75の間）
+                    if (progress < 0.75) {
+                        const sparkleProgress = (progress - 0.6) / 0.15;
+                        
+                        const sparklePositions = [
+                            { x: famicomCanvas.width * 0.2, y: famicomCanvas.height * 0.45 },
+                            { x: famicomCanvas.width * 0.35, y: famicomCanvas.height * 0.5 },
+                            { x: famicomCanvas.width * 0.5, y: famicomCanvas.height * 0.45 },
+                            { x: famicomCanvas.width * 0.65, y: famicomCanvas.height * 0.5 },
+                            { x: famicomCanvas.width * 0.8, y: famicomCanvas.height * 0.45 }
+                        ];
+                        
+                        sparklePositions.forEach((pos, i) => {
+                            const delay = i * 0.15;
+                            const localProgress = Math.max(0, Math.min(1, (sparkleProgress - delay) * 2));
+                            if (localProgress > 0) {
+                                drawFamicomSparkle(pos.x, pos.y, 40, localProgress);
+                            }
+                        });
+                    }
+                    
+                } else {
+                    // フェードアウト
+                    const fadeProgress = (progress - 0.9) / 0.1;
+                    const alpha = 1 - fadeProgress;
+                    
+                    famicomAllPixels.forEach(p => {
+                        const r = parseInt(p.color.slice(1, 3), 16);
+                        const g = parseInt(p.color.slice(3, 5), 16);
+                        const b = parseInt(p.color.slice(5, 7), 16);
+                        famicomCtx.fillStyle = `rgba(${r}, ${g}, ${b}, ${alpha})`;
+                        famicomCtx.fillRect(p.x, p.y, famicomPixelSize - 1, famicomPixelSize - 1);
+                    });
+                }
+                
+                // スキャンライン効果（レトロ感）
+                drawFamicomScanlines();
+                
+                // CRTっぽい周辺減光
+                const gradient = famicomCtx.createRadialGradient(
+                    famicomCanvas.width / 2, famicomCanvas.height / 2, 0,
+                    famicomCanvas.width / 2, famicomCanvas.height / 2, famicomCanvas.width * 0.7
+                );
+                gradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
+                gradient.addColorStop(1, 'rgba(0, 0, 0, 0.4)');
+                famicomCtx.fillStyle = gradient;
+                famicomCtx.fillRect(0, 0, famicomCanvas.width, famicomCanvas.height);
+                
+                famicomAnimationId = requestAnimationFrame(drawFamicom);
+            }
+            
+            function resetFamicomAnimation() {
+                famicomStartTime = null;
+            }
+            
+            function startFamicomAnimation() {
+                if (isFamicomAnimating) return;
+                isFamicomAnimating = true;
+                resetFamicomAnimation();
+                famicomAnimationId = requestAnimationFrame(drawFamicom);
+            }
+            
+            function stopFamicomAnimation() {
+                if (famicomAnimationId) {
+                    cancelAnimationFrame(famicomAnimationId);
+                    famicomAnimationId = null;
+                }
+                isFamicomAnimating = false;
+            }
+            
+            // ファミコンロゴ初期化
+            initFamicom();
+
+            // ========== 天気予報機能 ==========
+            // 天気コードからアイコンへの変換
+            function getWeatherIcon(code) {
+                const codeStr = String(code);
+                // 気象庁の天気コード対応表
+                if (codeStr.startsWith('100') || codeStr === '100') return '☀️';
+                if (codeStr.startsWith('101')) return '🌤️';
+                if (codeStr.startsWith('102') || codeStr.startsWith('104')) return '☀️☔';
+                if (codeStr.startsWith('103') || codeStr.startsWith('105')) return '☀️🌨️';
+                if (codeStr.startsWith('110') || codeStr.startsWith('111')) return '🌤️';
+                if (codeStr.startsWith('112') || codeStr.startsWith('113')) return '🌤️☔';
+                if (codeStr.startsWith('114') || codeStr.startsWith('115')) return '🌤️🌨️';
+                if (codeStr.startsWith('200') || codeStr === '200') return '☁️';
+                if (codeStr.startsWith('201') || codeStr.startsWith('202')) return '☁️☔';
+                if (codeStr.startsWith('203') || codeStr.startsWith('204')) return '☁️🌨️';
+                if (codeStr.startsWith('210') || codeStr.startsWith('211')) return '☁️';
+                if (codeStr.startsWith('212') || codeStr.startsWith('213')) return '☁️☔';
+                if (codeStr.startsWith('214') || codeStr.startsWith('215')) return '☁️🌨️';
+                if (codeStr.startsWith('300') || codeStr === '300') return '🌧️';
+                if (codeStr.startsWith('301') || codeStr.startsWith('302')) return '🌧️';
+                if (codeStr.startsWith('303') || codeStr.startsWith('304')) return '🌧️🌨️';
+                if (codeStr.startsWith('308')) return '⛈️';
+                if (codeStr.startsWith('311') || codeStr.startsWith('313')) return '🌧️';
+                if (codeStr.startsWith('314') || codeStr.startsWith('315')) return '🌧️🌨️';
+                if (codeStr.startsWith('400') || codeStr === '400') return '🌨️';
+                if (codeStr.startsWith('401') || codeStr.startsWith('402')) return '🌨️';
+                if (codeStr.startsWith('403') || codeStr.startsWith('405')) return '🌨️🌧️';
+                if (codeStr.startsWith('406') || codeStr.startsWith('407')) return '🌨️⛈️';
+                if (codeStr.startsWith('411') || codeStr.startsWith('413')) return '🌨️';
+                return '🌈';
+            }
+
+            // 日付ラベルを取得
+            function getDayLabel(dateStr, index) {
+                const date = new Date(dateStr);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                const targetDate = new Date(date);
+                targetDate.setHours(0, 0, 0, 0);
+                
+                const diffDays = Math.round((targetDate - today) / (1000 * 60 * 60 * 24));
+                
+                const month = date.getMonth() + 1;
+                const day = date.getDate();
+                const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
+                const weekday = weekdays[date.getDay()];
+                
+                let label = '';
+                if (diffDays === 0) label = '今日';
+                else if (diffDays === 1) label = '明日';
+                else if (diffDays === 2) label = '明後日';
+                else label = `${diffDays}日後`;
+                
+                return `${label}<br>${month}/${day}(${weekday})`;
+            }
+
+            // 天気データを取得・表示
+            function fetchWeatherData() {
+                const weatherCardsEl = document.getElementById('weather-cards');
+                const updateTimeEl = document.getElementById('weather-update-time');
+                
+                fetch('https://www.jma.go.jp/bosai/forecast/data/forecast/110000.json')
+                    .then(response => {
+                        if (!response.ok) throw new Error('Network error');
+                        return response.json();
+                    })
+                    .then(data => {
+                        // 南部（ふじみ野市）のデータを取得
+                        const timeSeries = data[0].timeSeries;
+                        
+                        // 天気情報（3日分）
+                        const weatherData = timeSeries[0];
+                        const southern = weatherData.areas.find(a => a.area.code === '110010');
+                        
+                        if (!southern) throw new Error('Area not found');
+                        
+                        const timeDefines = weatherData.timeDefines;
+                        const weathers = southern.weathers;
+                        const weatherCodes = southern.weatherCodes;
+                        
+                        // 降水確率（6時間ごと）
+                        const popData = timeSeries[1];
+                        const popArea = popData.areas.find(a => a.area.code === '110010');
+                        const pops = popArea ? popArea.pops : [];
+                        
+                        // 気温データ
+                        const tempData = data[0].timeSeries[2];
+                        const tempArea = tempData ? tempData.areas.find(a => a.area.code === '110010' || a.area.name === 'さいたま') : null;
+                        const temps = tempArea ? tempArea.temps : [];
+                        
+                        // カードを生成（3日分）
+                        let cardsHTML = '';
+                        const displayDays = Math.min(3, timeDefines.length);
+                        
+                        for (let i = 0; i < displayDays; i++) {
+                            const dayLabel = getDayLabel(timeDefines[i], i);
+                            const weather = weathers[i] ? weathers[i].replace(/　/g, ' ') : '---';
+                            const weatherCode = weatherCodes[i];
+                            const icon = getWeatherIcon(weatherCode);
+                            
+                            // 降水確率（その日の最大値を表示）
+                            let maxPop = '---';
+                            if (pops.length > 0) {
+                                // 6時間ごとのデータから該当日の最大を取得
+                                const dayPops = [];
+                                if (i === 0) {
+                                    // 今日: 最初の2-4個
+                                    for (let j = 0; j < Math.min(4, pops.length); j++) {
+                                        if (pops[j] !== '') dayPops.push(parseInt(pops[j]));
+                                    }
+                                } else if (i === 1) {
+                                    // 明日: 4-8個目
+                                    for (let j = 4; j < Math.min(8, pops.length); j++) {
+                                        if (pops[j] !== '') dayPops.push(parseInt(pops[j]));
+                                    }
+                                } else {
+                                    // 明後日は週間予報から（簡易表示）
+                                    maxPop = '---';
+                                }
+                                if (dayPops.length > 0) {
+                                    maxPop = Math.max(...dayPops) + '%';
+                                }
+                            }
+                            
+                            // 気温（今日の最高・最低、明日の最高・最低）
+                            let tempHigh = '---';
+                            let tempLow = '---';
+                            if (temps.length >= 4) {
+                                if (i === 0) {
+                                    tempLow = temps[0] ? temps[0] + '°' : '---';
+                                    tempHigh = temps[1] ? temps[1] + '°' : '---';
+                                } else if (i === 1) {
+                                    tempLow = temps[2] ? temps[2] + '°' : '---';
+                                    tempHigh = temps[3] ? temps[3] + '°' : '---';
+                                }
+                            }
+                            
+                            cardsHTML += `
+                                <div class="weather-card">
+                                    <div class="weather-card-date">${dayLabel}</div>
+                                    <div class="weather-card-icon">${icon}</div>
+                                    <div class="weather-card-text">${weather}</div>
+                                    <div class="weather-card-temps">
+                                        <div class="weather-temp weather-temp-high">
+                                            <div class="weather-temp-label">最高</div>
+                                            ${tempHigh}
+                                        </div>
+                                        <div class="weather-temp weather-temp-low">
+                                            <div class="weather-temp-label">最低</div>
+                                            ${tempLow}
+                                        </div>
+                                    </div>
+                                    <div class="weather-card-rain">
+                                        <span class="weather-card-rain-icon">☔</span>降水確率 ${maxPop}
+                                    </div>
+                                </div>
+                            `;
+                        }
+                        
+                        weatherCardsEl.innerHTML = cardsHTML;
+                        
+                        // 更新日時
+                        const reportTime = new Date(data[0].reportDatetime);
+                        updateTimeEl.textContent = `${reportTime.getMonth() + 1}/${reportTime.getDate()} ${reportTime.getHours()}:${String(reportTime.getMinutes()).padStart(2, '0')} 発表`;
+                        
+                        weatherDataLoaded = true;
+                    })
+                    .catch(error => {
+                        console.error('天気データ取得エラー:', error);
+                        weatherCardsEl.innerHTML = '<div class="weather-loading">☁️ データ取得中...</div>';
+                        weatherDataLoaded = false;
+                    });
+            }
+
+            // 初期化
+            renderTable(); // テーブルを生成
+            highlightCurrentMonthColumn();
+            displayCurrentMonthInfo();
+            setupPollenAlertScreen();
+            updateClock();
+            setInterval(updateClock, 1000); // 時計は常に更新(ただしupdateClock内で条件判定)
+            // パーティクルアニメーションは最初は開始しない(ロゴ画面表示時に開始)
+            rotateScreens();
+        });
+    </script>
+</body>
+</html>
