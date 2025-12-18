@@ -797,7 +797,7 @@
 
     <!-- 画像スライドショー画面（images/config.jsonから動的に読み込み） -->
     <div class="fullscreen-overlay slideshow-screen" id="slideshow-screen">
-        <img src="" alt="スライドショー画像" class="slideshow-image" id="slideshow-image">
+        <img src="" alt="スライドショー画像" class="slideshow-image" id="slideshow-image" onerror="this.style.display='none';" onload="this.style.display='block';">
     </div>
 
     <!-- ビリヤードロゴアニメーション画面 -->
@@ -840,7 +840,7 @@
             </div>
         </div>
         <div class="clock-logo-section">
-            <img src="ふじみ野ひかり眼科_ロゴ_高画質.png" alt="ふじみ野ひかり眼科ロゴ">
+            <img src="ふじみ野ひかり眼科_ロゴ_高画質.png" alt="ふじみ野ひかり眼科ロゴ" onerror="this.style.display='none';">
         </div>
     </div>
 
