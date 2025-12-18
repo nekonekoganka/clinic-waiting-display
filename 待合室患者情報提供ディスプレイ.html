@@ -2208,12 +2208,18 @@
                         const tempArea = tempData ? tempData.areas.find(a => a.area.code === '110010' || a.area.name === 'さいたま') : null;
                         const temps = tempArea ? tempArea.temps : [];
 
+                        // デバッグ: 気温データの確認
+                        console.log('=== 気温データ デバッグ ===');
+                        console.log('tempTimeDefines:', tempTimeDefines);
+                        console.log('temps:', temps);
+
                         // 気温データを日付・種別ごとに整理
                         const tempByDate = {};
                         tempTimeDefines.forEach((td, idx) => {
                             const date = new Date(td);
                             const dateKey = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
                             const hour = date.getHours();
+                            console.log(`  [${idx}] ${td} → hour=${hour}, temp=${temps[idx]}`);
                             if (!tempByDate[dateKey]) {
                                 tempByDate[dateKey] = { high: null, low: null };
                             }
@@ -2228,6 +2234,7 @@
                                 }
                             }
                         });
+                        console.log('tempByDate:', tempByDate);
                         
                         // カードを生成（データがある日数分）
                         let cardsHTML = '';
