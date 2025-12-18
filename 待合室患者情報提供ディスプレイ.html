@@ -862,20 +862,18 @@
                 main: 30000,          // メイン画面
                 alert: 15000,         // 花粉注意画面
                 tips: 15000,          // 対策ポイント(テキスト)
-                maskMegane: 15000,    // 対策ポイント(画像)
                 billiard: 30000,      // ビリヤードロゴアニメーション
                 clock: 15000,         // 時計画面
                 weather: 30000,       // 天気予報画面
                 weatherError: 3000,   // 天気予報エラー時
-                eyeFrail1: 10000,     // アイフレイル1
-                eyeFrail2: 20000,     // アイフレイル2
-                eyeFrail3: 30000,     // アイフレイル3
-                eyeFrail4: 7000,      // アイフレイル4
                 logo: 15000,          // ロゴアニメーション（パーティクル）
-                famicom: 15000        // ファミコン風ロゴ
+                famicom: 15000,       // ファミコン風ロゴ
+                slideshowDefault: 10000 // スライドショーのデフォルト表示時間
             },
             // レベルの重み付け（数値が大きいほど優先表示）
-            levelOrder: { '多い': 3, 'やや多い': 2, '少ない': 1, '': 0 }
+            levelOrder: { '多い': 3, 'やや多い': 2, '少ない': 1, '': 0 },
+            // スライドショー設定ファイルのパス
+            slideshowConfigPath: 'images/config.json'
         };
 
         // ==========================================
@@ -1110,21 +1108,86 @@
             let currentScreen = 0;
             let rotationTimeoutId = null;
             let weatherDataLoaded = false; // 天気データ読み込み状態
-            const screens = [
+            let slideshowImages = []; // スライドショー画像リスト
+
+            // 基本の画面リスト（スライドショー画像は動的に追加）
+            const baseScreens = [
                 { id: null, duration: CONFIG.durations.main },                    // メイン画面
                 { id: 'pollen-alert-screen', duration: CONFIG.durations.alert },  // 花粉アラート
                 { id: 'tips-screen', duration: CONFIG.durations.tips },           // 対策ポイント(テキスト)
-                { id: 'mask-megane-screen', duration: CONFIG.durations.maskMegane }, // 対策ポイント(画像)
+            ];
+
+            // 後半の固定画面
+            const endScreens = [
                 { id: 'billiard-screen', duration: CONFIG.durations.billiard },   // ビリヤードロゴ
                 { id: 'clock-screen', duration: CONFIG.durations.clock },         // 時計表示
                 { id: 'weather-screen', duration: CONFIG.durations.weather },     // 天気予報
-                { id: 'eye-frail-screen-1', duration: CONFIG.durations.eyeFrail1 }, // アイフレイル1
-                { id: 'eye-frail-screen-2', duration: CONFIG.durations.eyeFrail2 }, // アイフレイル2
-                { id: 'eye-frail-screen-3', duration: CONFIG.durations.eyeFrail3 }, // アイフレイル3
-                { id: 'eye-frail-screen-4', duration: CONFIG.durations.eyeFrail4 }, // アイフレイル4
                 { id: 'logo-animation-screen', duration: CONFIG.durations.logo },  // ロゴアニメーション（パーティクル）
                 { id: 'famicom-logo-screen', duration: CONFIG.durations.famicom }  // ファミコン風ロゴ
             ];
+
+            // スライドショー画像を含む全画面リスト
+            let screens = [];
+
+            // ファイル名から順番と表示秒数を解析
+            // 形式: {順番}_{秒数}_{説明}.{拡張子}  例: 1_15_花粉症対策.png
+            function parseImageFilename(filename) {
+                const match = filename.match(/^(\d+)_(\d+)_(.+)\.(png|jpg|jpeg|gif|webp)$/i);
+                if (match) {
+                    return {
+                        order: parseInt(match[1]),
+                        duration: parseInt(match[2]) * 1000, // 秒→ミリ秒
+                        description: match[3],
+                        filename: filename
+                    };
+                }
+                // 形式が合わない場合はデフォルト値
+                return {
+                    order: 999,
+                    duration: CONFIG.durations.slideshowDefault,
+                    description: filename,
+                    filename: filename
+                };
+            }
+
+            // スライドショー設定を読み込み
+            async function loadSlideshowConfig() {
+                try {
+                    const response = await fetch(CONFIG.slideshowConfigPath);
+                    if (!response.ok) {
+                        console.log('スライドショー設定ファイルが見つかりません');
+                        return [];
+                    }
+                    const config = await response.json();
+                    if (config.images && Array.isArray(config.images)) {
+                        // 画像情報を解析してソート
+                        const parsed = config.images
+                            .map(filename => parseImageFilename(filename))
+                            .sort((a, b) => a.order - b.order);
+                        console.log('スライドショー画像:', parsed);
+                        return parsed;
+                    }
+                } catch (error) {
+                    console.log('スライドショー設定読み込みエラー:', error);
+                }
+                return [];
+            }
+
+            // 画面リストを構築
+            async function buildScreensList() {
+                slideshowImages = await loadSlideshowConfig();
+
+                // スライドショー画像を画面リストに変換
+                const slideshowScreens = slideshowImages.map(img => ({
+                    id: 'slideshow-screen',
+                    duration: img.duration,
+                    slideshowImage: 'images/' + img.filename
+                }));
+
+                // 画面リストを構築: 基本画面 + スライドショー + 後半画面
+                screens = [...baseScreens, ...slideshowScreens, ...endScreens];
+                console.log('画面リスト構築完了:', screens.length, '画面');
+            }
 
             function showScreen(index) {
                 // すべてのオーバーレイを非表示
@@ -1135,9 +1198,17 @@
                 // 指定された画面を表示
                 if (screens[index].id) {
                     document.getElementById(screens[index].id).classList.add('active');
-                    
-                    // ロゴアニメーション画面が表示されたらアニメーションを開始
-                    if (screens[index].id === 'logo-animation-screen') {
+
+                    // スライドショー画面の場合は画像を設定
+                    if (screens[index].id === 'slideshow-screen' && screens[index].slideshowImage) {
+                        const imgEl = document.getElementById('slideshow-image');
+                        imgEl.src = screens[index].slideshowImage;
+                        imgEl.alt = screens[index].slideshowImage;
+                        stopParticleAnimation();
+                        stopBilliardAnimation();
+                        stopFamicomAnimation();
+                    } else if (screens[index].id === 'logo-animation-screen') {
+                        // ロゴアニメーション画面
                         startParticleAnimation();
                         stopBilliardAnimation();
                         stopFamicomAnimation();
@@ -2227,7 +2298,11 @@
             updateClock();
             setInterval(updateClock, 1000); // 時計は常に更新(ただしupdateClock内で条件判定)
             // パーティクルアニメーションは最初は開始しない(ロゴ画面表示時に開始)
-            rotateScreens();
+
+            // スライドショー設定を読み込んでから画面ローテーション開始
+            buildScreensList().then(() => {
+                rotateScreens();
+            });
         });
     </script>
 </body>
