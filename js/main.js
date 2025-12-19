@@ -391,6 +391,26 @@ document.addEventListener('DOMContentLoaded', () => {
             const cmAnimations = (SETTINGS.cm.animations || []).filter(cm => cm.enabled);
             let cmIndex = 0;
 
+            // スライドショー開始前にロゴアニメを挿入
+            if (cmAnimations.length > 0) {
+                const firstCm = cmAnimations[cmIndex % cmAnimations.length];
+                if (firstCm.type === 'video' && firstCm.src) {
+                    contentScreens.push({
+                        id: 'video-cm-screen',
+                        duration: firstCm.duration * 1000,
+                        videoSrc: firstCm.src,
+                        isCM: true
+                    });
+                } else {
+                    contentScreens.push({
+                        id: firstCm.id,
+                        duration: firstCm.duration * 1000,
+                        isCM: true
+                    });
+                }
+                cmIndex++;
+            }
+
             slideshowScreens.forEach((slide, index) => {
                 contentScreens.push(slide);
 
