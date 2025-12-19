@@ -15,10 +15,19 @@
     "interval": 6,
     "animations": [
       {
-        "id": "billiard-screen",
-        "name": "ビリヤードロゴ",
+        "id": "billiard-line",
+        "name": "ビリヤードロゴ（横1列）",
         "type": "animation",
         "duration": 15,
+        "pattern": "line",
+        "enabled": true
+      },
+      {
+        "id": "billiard-multi",
+        "name": "ビリヤードロゴ（横3行）",
+        "type": "animation",
+        "duration": 15,
+        "pattern": "multi",
         "enabled": true
       },
       {
