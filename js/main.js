@@ -457,12 +457,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     // PDFファイルの場合（分割非対応、そのまま表示）
                     imgEl.style.display = 'none';
                     imgEl.classList.remove('split-view');
+                    // フェードイン効果
+                    pdfEl.classList.add('fade-out');
                     pdfEl.src = screens[index].slideshowImage;
                     pdfEl.style.display = 'block';
+                    // 少し遅延してフェードイン
+                    setTimeout(() => pdfEl.classList.remove('fade-out'), 50);
                 } else {
                     // 画像ファイルの場合
                     pdfEl.style.display = 'none';
                     pdfEl.src = '';
+
+                    // フェードイン効果: まず透明にしてから画像を設定
+                    imgEl.classList.add('fade-out');
                     imgEl.src = screens[index].slideshowImage;
                     imgEl.alt = screens[index].slideshowImage;
                     imgEl.style.display = 'block';
@@ -477,6 +484,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     } else {
                         imgEl.classList.remove('split-view');
                         imgEl.style.objectPosition = 'center center';
+                    }
+
+                    // 画像読み込み完了後にフェードイン
+                    imgEl.onload = () => {
+                        imgEl.classList.remove('fade-out');
+                    };
+                    // 既にキャッシュされている場合のフォールバック
+                    if (imgEl.complete) {
+                        setTimeout(() => imgEl.classList.remove('fade-out'), 50);
                     }
                 }
                 stopParticleAnimation();
@@ -531,15 +547,31 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // スライドショー画像のフェードアウト処理
+    function fadeOutSlideshow() {
+        const imgEl = document.getElementById('slideshow-image');
+        const pdfEl = document.getElementById('slideshow-pdf');
+        if (imgEl) imgEl.classList.add('fade-out');
+        if (pdfEl) pdfEl.classList.add('fade-out');
+    }
+
     function rotateScreens() {
         showScreen(currentScreen);
-        
+
         // 天気予報画面でデータ未取得の場合は3秒で次へ
         let duration = screens[currentScreen].duration;
         if (screens[currentScreen].id === 'weather-screen' && !weatherDataLoaded) {
             duration = CONFIG.durations.weatherError;
         }
-        
+
+        // スライドショー画面の場合、切り替え0.5秒前にフェードアウト開始
+        const fadeOutDelay = 500; // フェードアウトにかかる時間(ms)
+        if (screens[currentScreen].id === 'slideshow-screen') {
+            setTimeout(() => {
+                fadeOutSlideshow();
+            }, duration - fadeOutDelay);
+        }
+
         rotationTimeoutId = setTimeout(() => {
             currentScreen = (currentScreen + 1) % screens.length;
             
