@@ -405,7 +405,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     contentScreens.push({
                         id: firstCm.id,
                         duration: firstCm.duration * 1000,
-                        isCM: true
+                        isCM: true,
+                        pattern: firstCm.pattern // ビリヤード用パターン
                     });
                 }
                 cmIndex++;
@@ -432,7 +433,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         contentScreens.push({
                             id: cm.id,
                             duration: cm.duration * 1000,
-                            isCM: true
+                            isCM: true,
+                            pattern: cm.pattern // ビリヤード用パターン
                         });
                     }
                     cmIndex++;
@@ -531,10 +533,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 stopBilliardAnimation();
                 stopFamicomAnimation();
                 stopVideoCM();
-            } else if (screens[index].id === 'billiard-screen') {
-                // ビリヤードアニメーション画面
+            } else if (screens[index].id === 'billiard-screen' || screens[index].id === 'billiard-line' || screens[index].id === 'billiard-multi') {
+                // ビリヤードアニメーション画面（横1列・横3行両対応）
+                // billiard-line/billiard-multi の場合も billiard-screen を表示
+                if (screens[index].id !== 'billiard-screen') {
+                    document.getElementById('billiard-screen').classList.add('active');
+                }
                 stopParticleAnimation();
-                startBilliardAnimation();
+                startBilliardAnimation(screens[index].pattern);
                 stopFamicomAnimation();
                 stopVideoCM();
             } else if (screens[index].id === 'famicom-logo-screen') {
@@ -687,6 +693,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let billiardStartTime = 0;
     let billiardShineTriggered = false;
     let isBilliardAnimating = false;
+    let billiardPattern = 'line'; // 'line' or 'multi'
     
     function billiardGenerateReflectionPath(startPos, endPos, reflections) {
         const path = [{ x: startPos.x, y: startPos.y }];
@@ -794,8 +801,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (billiardAnimationId) {
             cancelAnimationFrame(billiardAnimationId);
         }
-        
-        billiardIsLinePattern = !billiardIsLinePattern;
+
+        // patternに基づいてレイアウトを決定（交互切り替えではなく固定）
+        billiardIsLinePattern = (billiardPattern === 'line');
         billiardCurrentFinalPositions = billiardIsLinePattern ? billiardLinePositions : billiardMultiLinePositions;
         
         billiardGenerateAllPaths();
@@ -911,9 +919,10 @@ document.addEventListener('DOMContentLoaded', () => {
         billiardAnimationId = requestAnimationFrame(animateBilliard);
     }
     
-    function startBilliardAnimation() {
+    function startBilliardAnimation(pattern) {
         if (isBilliardAnimating) return;
         isBilliardAnimating = true;
+        billiardPattern = pattern || 'line'; // デフォルトは横1列
         initBilliardBalls();
         resetBilliardAnimation();
         animateBilliard();
