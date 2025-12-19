@@ -43,7 +43,7 @@ REM 画像ファイルを検索
 set "count=0"
 set "first=1"
 
-for %%e in (png jpg jpeg gif webp) do (
+for %%e in (png jpg jpeg gif webp pdf) do (
     for %%f in ("%IMAGES_DIR%\*.%%e") do (
         if exist "%%f" (
             set "filename=%%~nxf"
@@ -78,7 +78,8 @@ echo  設定ファイル: %CONFIG_FILE%
 echo ================================
 echo.
 echo ファイル名の形式:
-echo   {順番}_{表示秒数}_{説明}.png
+echo   {順番}_{表示秒数}_{説明}.{拡張子}
+echo   対応形式: png, jpg, jpeg, gif, webp, pdf
 echo   例: 1_15_花粉症対策.png → 1番目、15秒表示
 echo.
 

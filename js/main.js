@@ -282,21 +282,25 @@ document.addEventListener('DOMContentLoaded', () => {
     // ファイル名から順番と表示秒数を解析
     // 形式: {順番}_{秒数}_{説明}.{拡張子}  例: 1_15_花粉症対策.png
     function parseImageFilename(filename) {
-        const match = filename.match(/^(\d+)_(\d+)_(.+)\.(png|jpg|jpeg|gif|webp)$/i);
+        const match = filename.match(/^(\d+)_(\d+)_(.+)\.(png|jpg|jpeg|gif|webp|pdf)$/i);
         if (match) {
+            const ext = match[4].toLowerCase();
             return {
                 order: parseInt(match[1]),
                 duration: parseInt(match[2]) * 1000, // 秒→ミリ秒
                 description: match[3],
-                filename: filename
+                filename: filename,
+                isPDF: ext === 'pdf'
             };
         }
         // 形式が合わない場合はデフォルト値
+        const ext = filename.split('.').pop().toLowerCase();
         return {
             order: 999,
             duration: CONFIG.durations.slideshowDefault,
             description: filename,
-            filename: filename
+            filename: filename,
+            isPDF: ext === 'pdf'
         };
     }
 
@@ -350,7 +354,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const slideshowScreens = slideshowImages.map(img => ({
             id: 'slideshow-screen',
             duration: img.duration,
-            slideshowImage: 'images/' + img.filename
+            slideshowImage: 'images/' + img.filename,
+            isPDF: img.isPDF || false
         }));
 
         // CM設定がある場合、スライドショーの合間にCMを挿入
@@ -415,11 +420,24 @@ document.addEventListener('DOMContentLoaded', () => {
         if (screens[index].id) {
             document.getElementById(screens[index].id).classList.add('active');
 
-            // スライドショー画面の場合は画像を設定
+            // スライドショー画面の場合は画像またはPDFを設定
             if (screens[index].id === 'slideshow-screen' && screens[index].slideshowImage) {
                 const imgEl = document.getElementById('slideshow-image');
-                imgEl.src = screens[index].slideshowImage;
-                imgEl.alt = screens[index].slideshowImage;
+                const pdfEl = document.getElementById('slideshow-pdf');
+
+                if (screens[index].isPDF) {
+                    // PDFファイルの場合
+                    imgEl.style.display = 'none';
+                    pdfEl.src = screens[index].slideshowImage;
+                    pdfEl.style.display = 'block';
+                } else {
+                    // 画像ファイルの場合
+                    pdfEl.style.display = 'none';
+                    pdfEl.src = '';
+                    imgEl.src = screens[index].slideshowImage;
+                    imgEl.alt = screens[index].slideshowImage;
+                    imgEl.style.display = 'block';
+                }
                 stopParticleAnimation();
                 stopBilliardAnimation();
                 stopFamicomAnimation();

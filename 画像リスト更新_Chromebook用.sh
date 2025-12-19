@@ -33,7 +33,7 @@ echo '  "images": [' >> "$CONFIG_FILE"
 
 # 画像ファイルを取得してソート
 first=true
-find "$IMAGES_DIR" -maxdepth 1 -type f \( -iname "*.png" -o -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.gif" -o -iname "*.webp" \) | sort | while read -r filepath; do
+find "$IMAGES_DIR" -maxdepth 1 -type f \( -iname "*.png" -o -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.gif" -o -iname "*.webp" -o -iname "*.pdf" \) | sort | while read -r filepath; do
     filename=$(basename "$filepath")
 
     # config.jsonは除外
@@ -56,7 +56,7 @@ echo '  ]' >> "$CONFIG_FILE"
 echo '}' >> "$CONFIG_FILE"
 
 # 画像数をカウント
-count=$(find "$IMAGES_DIR" -maxdepth 1 -type f \( -iname "*.png" -o -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.gif" -o -iname "*.webp" \) | wc -l)
+count=$(find "$IMAGES_DIR" -maxdepth 1 -type f \( -iname "*.png" -o -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.gif" -o -iname "*.webp" -o -iname "*.pdf" \) | wc -l)
 
 echo ""
 echo "================================"
@@ -66,6 +66,7 @@ echo " 設定ファイル: $CONFIG_FILE"
 echo "================================"
 echo ""
 echo "ファイル名の形式:"
-echo "  {順番}_{表示秒数}_{説明}.png"
+echo "  {順番}_{表示秒数}_{説明}.{拡張子}"
+echo "  対応形式: png, jpg, jpeg, gif, webp, pdf"
 echo "  例: 1_15_花粉症対策.png → 1番目、15秒表示"
 echo ""

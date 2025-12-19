@@ -287,6 +287,12 @@ td { padding: clamp(3px, 0.5vh, 8px); border: 1px solid var(--border-color); tex
     object-fit: contain;
     box-shadow: 0 10px 30px rgba(0,0,0,0.15);
 }
+.slideshow-pdf {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: none;
+}
 
 /* ========== 動画CM画面 ========== */
 .video-cm-screen {
