@@ -286,6 +286,28 @@ td { padding: clamp(3px, 0.5vh, 8px); border: 1px solid var(--border-color); tex
     height: auto;
     object-fit: contain;
     box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    transition: opacity 0.5s ease-in-out;
+}
+.slideshow-image.fade-out {
+    opacity: 0;
+}
+/* 分割表示モード: 縦長画像を横幅いっぱいに拡大し、一部を表示 */
+.slideshow-image.split-view {
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    object-fit: cover;
+}
+.slideshow-pdf {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: none;
+    transition: opacity 0.5s ease-in-out;
+}
+.slideshow-pdf.fade-out {
+    opacity: 0;
 }
 
 /* ========== 動画CM画面 ========== */
