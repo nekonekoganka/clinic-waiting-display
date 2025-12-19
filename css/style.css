@@ -287,6 +287,14 @@ td { padding: clamp(3px, 0.5vh, 8px); border: 1px solid var(--border-color); tex
     object-fit: contain;
     box-shadow: 0 10px 30px rgba(0,0,0,0.15);
 }
+/* 分割表示モード: 縦長画像を横幅いっぱいに拡大し、一部を表示 */
+.slideshow-image.split-view {
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    object-fit: cover;
+}
 .slideshow-pdf {
     width: 100%;
     height: 100%;

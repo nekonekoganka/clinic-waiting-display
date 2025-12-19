@@ -280,14 +280,31 @@ document.addEventListener('DOMContentLoaded', () => {
     let screens = [];
 
     // ファイル名から順番と表示秒数を解析
-    // 形式: {順番}_{秒数}_{説明}.{拡張子}  例: 1_15_花粉症対策.png
+    // 形式1: {順番}_{秒数}_{分割数}_{説明}.{拡張子}  例: 6_20_3_花粉症ポスター.png（3分割）
+    // 形式2: {順番}_{秒数}_{説明}.{拡張子}  例: 1_15_花粉症対策.png（従来形式）
     function parseImageFilename(filename) {
+        // 分割数ありの形式をまずチェック
+        const matchWithSplit = filename.match(/^(\d+)_(\d+)_(\d+)_(.+)\.(png|jpg|jpeg|gif|webp|pdf)$/i);
+        if (matchWithSplit) {
+            const ext = matchWithSplit[5].toLowerCase();
+            return {
+                order: parseInt(matchWithSplit[1]),
+                duration: parseInt(matchWithSplit[2]) * 1000, // 秒→ミリ秒
+                splitCount: parseInt(matchWithSplit[3]),      // 分割数
+                description: matchWithSplit[4],
+                filename: filename,
+                isPDF: ext === 'pdf'
+            };
+        }
+
+        // 従来形式（分割なし）
         const match = filename.match(/^(\d+)_(\d+)_(.+)\.(png|jpg|jpeg|gif|webp|pdf)$/i);
         if (match) {
             const ext = match[4].toLowerCase();
             return {
                 order: parseInt(match[1]),
                 duration: parseInt(match[2]) * 1000, // 秒→ミリ秒
+                splitCount: 1,                       // 分割なし
                 description: match[3],
                 filename: filename,
                 isPDF: ext === 'pdf'
@@ -298,6 +315,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return {
             order: 999,
             duration: CONFIG.durations.slideshowDefault,
+            splitCount: 1,
             description: filename,
             filename: filename,
             isPDF: ext === 'pdf'
@@ -350,13 +368,21 @@ document.addEventListener('DOMContentLoaded', () => {
         SETTINGS = await loadSettings();
         slideshowImages = await loadSlideshowConfig();
 
-        // スライドショー画像を画面リストに変換
-        const slideshowScreens = slideshowImages.map(img => ({
-            id: 'slideshow-screen',
-            duration: img.duration,
-            slideshowImage: 'images/' + img.filename,
-            isPDF: img.isPDF || false
-        }));
+        // スライドショー画像を画面リストに変換（分割対応）
+        const slideshowScreens = [];
+        slideshowImages.forEach(img => {
+            const splitCount = img.splitCount || 1;
+            for (let i = 0; i < splitCount; i++) {
+                slideshowScreens.push({
+                    id: 'slideshow-screen',
+                    duration: img.duration,
+                    slideshowImage: 'images/' + img.filename,
+                    isPDF: img.isPDF || false,
+                    splitCount: splitCount,
+                    splitIndex: i  // 0から始まる分割インデックス
+                });
+            }
+        });
 
         // CM設定がある場合、スライドショーの合間にCMを挿入
         let contentScreens = [];
@@ -424,10 +450,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (screens[index].id === 'slideshow-screen' && screens[index].slideshowImage) {
                 const imgEl = document.getElementById('slideshow-image');
                 const pdfEl = document.getElementById('slideshow-pdf');
+                const splitCount = screens[index].splitCount || 1;
+                const splitIndex = screens[index].splitIndex || 0;
 
                 if (screens[index].isPDF) {
-                    // PDFファイルの場合
+                    // PDFファイルの場合（分割非対応、そのまま表示）
                     imgEl.style.display = 'none';
+                    imgEl.classList.remove('split-view');
                     pdfEl.src = screens[index].slideshowImage;
                     pdfEl.style.display = 'block';
                 } else {
@@ -437,6 +466,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     imgEl.src = screens[index].slideshowImage;
                     imgEl.alt = screens[index].slideshowImage;
                     imgEl.style.display = 'block';
+
+                    // 分割表示の設定
+                    if (splitCount > 1) {
+                        imgEl.classList.add('split-view');
+                        // object-positionで表示位置を制御
+                        // 縦方向の位置を％で計算（上部=0%, 下部=100%）
+                        const positionPercent = (splitIndex / (splitCount - 1)) * 100;
+                        imgEl.style.objectPosition = `center ${positionPercent}%`;
+                    } else {
+                        imgEl.classList.remove('split-view');
+                        imgEl.style.objectPosition = 'center center';
+                    }
                 }
                 stopParticleAnimation();
                 stopBilliardAnimation();
