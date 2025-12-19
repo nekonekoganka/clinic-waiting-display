@@ -12,13 +12,13 @@
   },
   "cm": {
     "enabled": true,
-    "interval": 2,
+    "interval": 4,
     "animations": [
       {
         "id": "billiard-screen",
         "name": "ビリヤードロゴ",
         "type": "animation",
-        "duration": 30,
+        "duration": 15,
         "enabled": true
       },
       {
