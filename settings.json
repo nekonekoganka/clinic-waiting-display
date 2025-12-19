@@ -12,7 +12,7 @@
   },
   "cm": {
     "enabled": true,
-    "interval": 4,
+    "interval": 6,
     "animations": [
       {
         "id": "billiard-screen",
