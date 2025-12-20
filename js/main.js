@@ -389,14 +389,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     slideshowImage: 'images/' + img.filename,
                     isPDF: img.isPDF || false,
                     splitCount: splitCount,
-                    splitIndex: i  // 0から始まる分割インデックス
+                    splitIndex: i,  // 0から始まる分割インデックス
+                    // CMマーカーは最後の分割部分にのみ適用
+                    hasCM: img.hasCM && (i === splitCount - 1)
                 });
             }
         });
 
-        // CM設定がある場合、10秒以下の画像の前にCMを挿入
-        // ただし、連続する10秒以下の画像は最初の1枚の前だけ
-        const CM_THRESHOLD = 10000; // 10秒（ミリ秒）
+        // CM設定がある場合、_CMマーカーがある画像の後にCMを挿入
         let contentScreens = [];
         if (SETTINGS && SETTINGS.cm && SETTINGS.cm.enabled && slideshowScreens.length > 0) {
             const cmAnimations = (SETTINGS.cm.animations || []).filter(cm => cm.enabled);
@@ -424,42 +424,34 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             slideshowScreens.forEach((slide, index) => {
-                // 10秒以下の画像の前にCMを挿入
-                // ただし、最初の画像は開始前CMがあるのでスキップ
-                // また、直前の画像も10秒以下なら連続なのでスキップ
-                if (index > 0 && slide.duration <= CM_THRESHOLD && cmAnimations.length > 0) {
-                    const prevSlide = slideshowScreens[index - 1];
-                    const isPrevShort = prevSlide.duration <= CM_THRESHOLD;
-
-                    // 連続する短い画像でなければCMを挿入
-                    if (!isPrevShort) {
-                        const cm = cmAnimations[cmIndex % cmAnimations.length];
-
-                        // CMタイプに応じて画面データを作成
-                        if (cm.type === 'video' && cm.src) {
-                            // 動画CM
-                            contentScreens.push({
-                                id: 'video-cm-screen',
-                                duration: cm.duration * 1000,
-                                videoSrc: cm.src,
-                                isCM: true
-                            });
-                        } else {
-                            // HTMLアニメーションCM
-                            contentScreens.push({
-                                id: cm.id,
-                                duration: cm.duration * 1000,
-                                isCM: true,
-                                pattern: cm.pattern // ビリヤード用パターン
-                            });
-                        }
-                        cmIndex++;
-                    }
-                }
-
                 contentScreens.push(slide);
+
+                // _CMマーカーがある画像の後にCMを挿入
+                if (slide.hasCM && cmAnimations.length > 0) {
+                    const cm = cmAnimations[cmIndex % cmAnimations.length];
+
+                    // CMタイプに応じて画面データを作成
+                    if (cm.type === 'video' && cm.src) {
+                        // 動画CM
+                        contentScreens.push({
+                            id: 'video-cm-screen',
+                            duration: cm.duration * 1000,
+                            videoSrc: cm.src,
+                            isCM: true
+                        });
+                    } else {
+                        // HTMLアニメーションCM
+                        contentScreens.push({
+                            id: cm.id,
+                            duration: cm.duration * 1000,
+                            isCM: true,
+                            pattern: cm.pattern // ビリヤード用パターン
+                        });
+                    }
+                    cmIndex++;
+                }
             });
-            console.log('CM挿入完了: 10秒以下アイキャッチ方式, CM数=' + cmIndex);
+            console.log('CM挿入完了: _CMマーカー方式, CM数=' + cmIndex);
         } else {
             // 設定がない場合は従来通り
             contentScreens = slideshowScreens;
