@@ -282,9 +282,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // ファイル名から順番と表示秒数を解析
     // 形式1: {順番}_{秒数}_{分割数}_{説明}.{拡張子}  例: 6_20_3_花粉症ポスター.png（3分割）
     // 形式2: {順番}_{秒数}_{説明}.{拡張子}  例: 1_15_花粉症対策.png（従来形式）
+    // CMマーカー: 説明部分が「_CM」で終わる場合、この画像の後にCMを挿入
+    //            例: 5_30_フレイル予防_CM.png
     function parseImageFilename(filename) {
+        // CMマーカーの検出（説明部分が_CMで終わるかチェック）
+        const hasCM = /_CM\.(png|jpg|jpeg|gif|webp|pdf)$/i.test(filename);
+        // CMマーカーを除去したファイル名で解析
+        const cleanFilename = filename.replace(/_CM\./i, '.');
+
         // 分割数ありの形式をまずチェック
-        const matchWithSplit = filename.match(/^(\d+)_(\d+)_(\d+)_(.+)\.(png|jpg|jpeg|gif|webp|pdf)$/i);
+        const matchWithSplit = cleanFilename.match(/^(\d+)_(\d+)_(\d+)_(.+)\.(png|jpg|jpeg|gif|webp|pdf)$/i);
         if (matchWithSplit) {
             const ext = matchWithSplit[5].toLowerCase();
             return {
@@ -292,13 +299,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 duration: parseInt(matchWithSplit[2]) * 1000, // 秒→ミリ秒
                 splitCount: parseInt(matchWithSplit[3]),      // 分割数
                 description: matchWithSplit[4],
-                filename: filename,
-                isPDF: ext === 'pdf'
+                filename: filename,  // 元のファイル名を保持
+                isPDF: ext === 'pdf',
+                hasCM: hasCM         // CMマーカーフラグ
             };
         }
 
         // 従来形式（分割なし）
-        const match = filename.match(/^(\d+)_(\d+)_(.+)\.(png|jpg|jpeg|gif|webp|pdf)$/i);
+        const match = cleanFilename.match(/^(\d+)_(\d+)_(.+)\.(png|jpg|jpeg|gif|webp|pdf)$/i);
         if (match) {
             const ext = match[4].toLowerCase();
             return {
@@ -306,8 +314,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 duration: parseInt(match[2]) * 1000, // 秒→ミリ秒
                 splitCount: 1,                       // 分割なし
                 description: match[3],
-                filename: filename,
-                isPDF: ext === 'pdf'
+                filename: filename,  // 元のファイル名を保持
+                isPDF: ext === 'pdf',
+                hasCM: hasCM         // CMマーカーフラグ
             };
         }
         // 形式が合わない場合はデフォルト値
@@ -318,7 +327,8 @@ document.addEventListener('DOMContentLoaded', () => {
             splitCount: 1,
             description: filename,
             filename: filename,
-            isPDF: ext === 'pdf'
+            isPDF: ext === 'pdf',
+            hasCM: hasCM             // CMマーカーフラグ
         };
     }
 
@@ -379,15 +389,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     slideshowImage: 'images/' + img.filename,
                     isPDF: img.isPDF || false,
                     splitCount: splitCount,
-                    splitIndex: i  // 0から始まる分割インデックス
+                    splitIndex: i,  // 0から始まる分割インデックス
+                    // CMマーカーは最後の分割部分にのみ適用
+                    hasCM: img.hasCM && (i === splitCount - 1)
                 });
             }
         });
 
-        // CM設定がある場合、スライドショーの合間にCMを挿入
+        // CM設定がある場合、_CMマーカーがある画像の後にCMを挿入
         let contentScreens = [];
         if (SETTINGS && SETTINGS.cm && SETTINGS.cm.enabled && slideshowScreens.length > 0) {
-            const cmInterval = SETTINGS.cm.interval || 2;
             const cmAnimations = (SETTINGS.cm.animations || []).filter(cm => cm.enabled);
             let cmIndex = 0;
 
@@ -415,8 +426,8 @@ document.addEventListener('DOMContentLoaded', () => {
             slideshowScreens.forEach((slide, index) => {
                 contentScreens.push(slide);
 
-                // N枚ごとにCMを挿入（最後の画像の後は挿入しない）
-                if ((index + 1) % cmInterval === 0 && index < slideshowScreens.length - 1 && cmAnimations.length > 0) {
+                // _CMマーカーがある画像の後にCMを挿入
+                if (slide.hasCM && cmAnimations.length > 0) {
                     const cm = cmAnimations[cmIndex % cmAnimations.length];
 
                     // CMタイプに応じて画面データを作成
@@ -440,7 +451,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     cmIndex++;
                 }
             });
-            console.log('CM挿入完了: 間隔=' + cmInterval + '枚, CM数=' + cmIndex);
+            console.log('CM挿入完了: _CMマーカー方式, CM数=' + cmIndex);
         } else {
             // 設定がない場合は従来通り
             contentScreens = slideshowScreens;

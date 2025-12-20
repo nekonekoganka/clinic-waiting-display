@@ -12,7 +12,6 @@
   },
   "cm": {
     "enabled": true,
-    "interval": 6,
     "animations": [
       {
         "id": "billiard-line",
@@ -55,8 +54,9 @@
     ]
   },
   "_comment": {
-    "interval": "スライドショー画像N枚ごとにCMを1つ挿入（2 = 2枚ごと）",
+    "cm_marker": "画像ファイル名が _CM で終わる場合（例: 5_30_説明_CM.png）、その画像の後にCMを挿入",
     "type_animation": "animation = HTML内蔵アニメーション（id でHTMLのscreen IDを指定）",
-    "type_video": "video = MP4動画（src でファイルパスを指定）"
+    "type_video": "video = MP4動画（src でファイルパスを指定）",
+    "animations_order": "animations配列の順番通りにCMがローテーション"
   }
 }
