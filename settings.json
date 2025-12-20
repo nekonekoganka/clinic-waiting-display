@@ -54,7 +54,7 @@
     ]
   },
   "_comment": {
-    "cm_marker": "画像ファイル名が _CM で終わる場合（例: 5_30_説明_CM.png）、その画像の後にCMを挿入",
+    "cm_auto_insert": "10秒以下の画像（アイキャッチ）の前にCMを自動挿入。連続する短い画像は最初だけ",
     "type_animation": "animation = HTML内蔵アニメーション（id でHTMLのscreen IDを指定）",
     "type_video": "video = MP4動画（src でファイルパスを指定）",
     "animations_order": "animations配列の順番通りにCMがローテーション"
