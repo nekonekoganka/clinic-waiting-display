@@ -282,6 +282,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ファイル名から順番と表示秒数を解析
     // 形式1: {順番}_{秒数}_{分割数}_{説明}.{拡張子}  例: 6_20_3_花粉症ポスター.png（3分割）
     // 形式2: {順番}_{秒数}_{説明}.{拡張子}  例: 1_15_花粉症対策.png（従来形式）
+    // 順番は小数点対応: 22.5_30_新画像.png → 22と23の間に挿入
     // CMマーカー: 説明部分が「_CM」で終わる場合、この画像の後にCMを挿入
     //            例: 5_30_フレイル予防_CM.png
     function parseImageFilename(filename) {
@@ -290,12 +291,12 @@ document.addEventListener('DOMContentLoaded', () => {
         // CMマーカーを除去したファイル名で解析
         const cleanFilename = filename.replace(/_CM\./i, '.');
 
-        // 分割数ありの形式をまずチェック
-        const matchWithSplit = cleanFilename.match(/^(\d+)_(\d+)_(\d+)_(.+)\.(png|jpg|jpeg|gif|webp|pdf)$/i);
+        // 分割数ありの形式をまずチェック（順番は小数点対応）
+        const matchWithSplit = cleanFilename.match(/^(\d+(?:\.\d+)?)_(\d+)_(\d+)_(.+)\.(png|jpg|jpeg|gif|webp|pdf)$/i);
         if (matchWithSplit) {
             const ext = matchWithSplit[5].toLowerCase();
             return {
-                order: parseInt(matchWithSplit[1]),
+                order: parseFloat(matchWithSplit[1]),  // 小数点対応
                 duration: parseInt(matchWithSplit[2]) * 1000, // 秒→ミリ秒
                 splitCount: parseInt(matchWithSplit[3]),      // 分割数
                 description: matchWithSplit[4],
@@ -305,12 +306,12 @@ document.addEventListener('DOMContentLoaded', () => {
             };
         }
 
-        // 従来形式（分割なし）
-        const match = cleanFilename.match(/^(\d+)_(\d+)_(.+)\.(png|jpg|jpeg|gif|webp|pdf)$/i);
+        // 従来形式（分割なし、順番は小数点対応）
+        const match = cleanFilename.match(/^(\d+(?:\.\d+)?)_(\d+)_(.+)\.(png|jpg|jpeg|gif|webp|pdf)$/i);
         if (match) {
             const ext = match[4].toLowerCase();
             return {
-                order: parseInt(match[1]),
+                order: parseFloat(match[1]),  // 小数点対応
                 duration: parseInt(match[2]) * 1000, // 秒→ミリ秒
                 splitCount: 1,                       // 分割なし
                 description: match[3],
