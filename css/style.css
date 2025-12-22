@@ -316,6 +316,9 @@ td { padding: clamp(3px, 0.5vh, 8px); border: 1px solid var(--border-color); tex
     width: 100%;
     height: 100%;
     object-fit: contain;
+    transform: translateZ(0);
+    will-change: transform;
+    backface-visibility: hidden;
 }
 
 /* ========== 時計表示画面 ========== */
