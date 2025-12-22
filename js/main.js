@@ -463,7 +463,14 @@ document.addEventListener('DOMContentLoaded', () => {
         let finalEndScreens = endScreens;
         if (SETTINGS && SETTINGS.cm && SETTINGS.cm.enabled) {
             const cmIds = (SETTINGS.cm.animations || []).filter(cm => cm.enabled).map(cm => cm.id);
-            finalEndScreens = endScreens.filter(screen => !cmIds.includes(screen.id));
+            // billiard-line/billiard-multi が有効な場合、billiard-screen も除外
+            const hasBilliardCM = cmIds.includes('billiard-line') || cmIds.includes('billiard-multi');
+            finalEndScreens = endScreens.filter(screen => {
+                if (screen.id === 'billiard-screen' && hasBilliardCM) {
+                    return false; // ビリヤードCMが有効なら除外
+                }
+                return !cmIds.includes(screen.id);
+            });
         }
 
         // 画面リストを構築: 基本画面 + コンテンツ(スライド+CM) + 後半画面
