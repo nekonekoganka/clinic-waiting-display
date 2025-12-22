@@ -257,6 +257,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 画面切り替えローテーション
     let currentScreen = 0;
     let rotationTimeoutId = null;
+    let fadeOutTimeoutId = null; // フェードアウト用タイマー
     let weatherDataLoaded = false; // 天気データ読み込み状態
     let slideshowImages = []; // スライドショー画像リスト
 
@@ -605,7 +606,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // スライドショー画面の場合、切り替え0.5秒前にフェードアウト開始
         const fadeOutDelay = 500; // フェードアウトにかかる時間(ms)
         if (screens[currentScreen].id === 'slideshow-screen') {
-            setTimeout(() => {
+            fadeOutTimeoutId = setTimeout(() => {
                 fadeOutSlideshow();
             }, duration - fadeOutDelay);
         }
@@ -625,9 +626,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // スペースキーで次の画面に切り替え
     function goToNextScreen() {
-        // 現在のタイマーをクリア
+        // 現在のタイマーをすべてクリア
         if (rotationTimeoutId) {
             clearTimeout(rotationTimeoutId);
+        }
+        if (fadeOutTimeoutId) {
+            clearTimeout(fadeOutTimeoutId);
         }
         // 次の画面へ
         currentScreen = (currentScreen + 1) % screens.length;
