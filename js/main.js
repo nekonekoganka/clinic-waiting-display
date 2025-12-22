@@ -611,8 +611,8 @@ document.addEventListener('DOMContentLoaded', () => {
             duration = CONFIG.durations.weatherError;
         }
 
-        // スライドショー画面の場合、切り替え0.5秒前にフェードアウト開始
-        const fadeOutDelay = 500; // フェードアウトにかかる時間(ms)
+        // スライドショー画面の場合、切り替え0.25秒前にフェードアウト開始
+        const fadeOutDelay = 250; // フェードアウトにかかる時間(ms)
         if (screens[currentScreen].id === 'slideshow-screen') {
             fadeOutTimeoutId = setTimeout(() => {
                 fadeOutSlideshow();
