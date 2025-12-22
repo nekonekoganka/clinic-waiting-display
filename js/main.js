@@ -1470,13 +1470,38 @@ document.addEventListener('DOMContentLoaded', () => {
     // ========== 動画CM機能 ==========
     const videoCMPlayer = document.getElementById('video-cm-player');
     let isVideoCMPlaying = false;
+    let videoCMLoopCount = 0; // 現在のループ回数
+    let videoCMTargetLoops = 1; // 目標ループ回数
 
     function startVideoCM(src) {
         if (!videoCMPlayer || !src) return;
 
+        // ループカウントをリセット
+        videoCMLoopCount = 0;
+        videoCMTargetLoops = 1;
+
         // 動画ソースを設定
         videoCMPlayer.src = src;
         videoCMPlayer.load();
+
+        // メタデータ読み込み後に動画の長さを確認
+        videoCMPlayer.onloadedmetadata = () => {
+            const duration = videoCMPlayer.duration;
+            // 15秒未満なら2周、15秒以上なら1周
+            videoCMTargetLoops = duration < 15 ? 2 : 1;
+            console.log(`動画CM: ${duration.toFixed(1)}秒 → ${videoCMTargetLoops}周再生`);
+        };
+
+        // 動画終了時の処理
+        videoCMPlayer.onended = () => {
+            videoCMLoopCount++;
+            if (videoCMLoopCount < videoCMTargetLoops) {
+                // まだループが必要なら最初から再生
+                videoCMPlayer.currentTime = 0;
+                videoCMPlayer.play();
+            }
+            // 目標回数に達したら自然に停止（画面切り替えはrotateScreensが管理）
+        };
 
         // 再生開始
         videoCMPlayer.play().then(() => {
@@ -1493,7 +1518,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         videoCMPlayer.pause();
         videoCMPlayer.currentTime = 0;
+        videoCMPlayer.onended = null; // イベントリスナーをクリア
         isVideoCMPlaying = false;
+        videoCMLoopCount = 0;
     }
 
     // ファミコンロゴ初期化
