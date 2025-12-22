@@ -479,7 +479,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 指定された画面を表示
         if (screens[index].id) {
-            document.getElementById(screens[index].id).classList.add('active');
+            // billiard-line/billiard-multi は実際のHTML要素ID(billiard-screen)にマッピング
+            let screenElementId = screens[index].id;
+            if (screens[index].id === 'billiard-line' || screens[index].id === 'billiard-multi') {
+                screenElementId = 'billiard-screen';
+            }
+            document.getElementById(screenElementId).classList.add('active');
 
             // スライドショー画面の場合は画像またはPDFを設定
             if (screens[index].id === 'slideshow-screen' && screens[index].slideshowImage) {
@@ -548,10 +553,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 stopVideoCM();
             } else if (screens[index].id === 'billiard-screen' || screens[index].id === 'billiard-line' || screens[index].id === 'billiard-multi') {
                 // ビリヤードアニメーション画面（横1列・横3行両対応）
-                // billiard-line/billiard-multi の場合も billiard-screen を表示
-                if (screens[index].id !== 'billiard-screen') {
-                    document.getElementById('billiard-screen').classList.add('active');
-                }
                 stopParticleAnimation();
                 startBilliardAnimation(screens[index].pattern);
                 stopFamicomAnimation();
@@ -1724,6 +1725,9 @@ document.addEventListener('DOMContentLoaded', () => {
     updateClock();
     setInterval(updateClock, 1000); // 時計は常に更新(ただしupdateClock内で条件判定)
     // パーティクルアニメーションは最初は開始しない(ロゴ画面表示時に開始)
+
+    // 天気データを事前に取得（最初のローテーション到達前に読み込み完了させる）
+    fetchWeatherData();
 
     // スライドショー設定を読み込んでから画面ローテーション開始
     buildScreensList().then(() => {
