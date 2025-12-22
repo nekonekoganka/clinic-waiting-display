@@ -492,7 +492,8 @@ td { padding: clamp(3px, 0.5vh, 8px); border: 1px solid var(--border-color); tex
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 40px;
+    padding: 60px 50px;
+    box-sizing: border-box;
     color: white;
 }
 .weather-header {
