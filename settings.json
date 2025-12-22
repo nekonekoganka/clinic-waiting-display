@@ -22,23 +22,8 @@
         "enabled": true
       },
       {
-        "id": "billiard-multi",
-        "name": "ビリヤードロゴ（横3行）",
-        "type": "animation",
-        "duration": 15,
-        "pattern": "multi",
-        "enabled": true
-      },
-      {
         "id": "logo-animation-screen",
         "name": "パーティクルロゴ",
-        "type": "animation",
-        "duration": 15,
-        "enabled": true
-      },
-      {
-        "id": "famicom-logo-screen",
-        "name": "ファミコン風ロゴ",
         "type": "animation",
         "duration": 15,
         "enabled": true
@@ -48,6 +33,21 @@
         "name": "待合室ピクセルアニメーション",
         "type": "video",
         "src": "cm/待合室_ピクセルアニメーション.mp4",
+        "duration": 15,
+        "enabled": true
+      },
+      {
+        "id": "billiard-multi",
+        "name": "ビリヤードロゴ（横3行）",
+        "type": "animation",
+        "duration": 15,
+        "pattern": "multi",
+        "enabled": true
+      },
+      {
+        "id": "famicom-logo-screen",
+        "name": "ファミコン風ロゴ",
+        "type": "animation",
         "duration": 15,
         "enabled": true
       },
