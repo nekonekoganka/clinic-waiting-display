@@ -45,11 +45,19 @@
       },
       {
         "id": "video-cm-1",
-        "name": "サンプル動画CM",
+        "name": "待合室ピクセルアニメーション",
         "type": "video",
-        "src": "cm/videos/sample.mp4",
-        "duration": 30,
-        "enabled": false
+        "src": "cm/待合室_ピクセルアニメーション.mp4",
+        "duration": 15,
+        "enabled": true
+      },
+      {
+        "id": "video-cm-2",
+        "name": "空ピクセルアート動画",
+        "type": "video",
+        "src": "cm/空_ピクセルアート動画.mp4",
+        "duration": 15,
+        "enabled": true
       }
     ]
   },
