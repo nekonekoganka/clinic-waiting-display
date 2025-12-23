@@ -1474,8 +1474,15 @@ document.addEventListener('DOMContentLoaded', () => {
     let videoCMLoopCount = 0; // 現在のループ回数
     let videoCMTargetLoops = 1; // 目標ループ回数
 
+    // イベントハンドラを関数として定義（適切なクリーンアップのため）
+    let videoCMMetadataHandler = null;
+    let videoCMEndedHandler = null;
+
     function startVideoCM(src) {
         if (!videoCMPlayer || !src) return;
+
+        // 前回のイベントリスナーを確実にクリア
+        cleanupVideoCMListeners();
 
         // ループカウントをリセット
         videoCMLoopCount = 0;
@@ -1486,15 +1493,16 @@ document.addEventListener('DOMContentLoaded', () => {
         videoCMPlayer.load();
 
         // メタデータ読み込み後に動画の長さを確認
-        videoCMPlayer.onloadedmetadata = () => {
+        videoCMMetadataHandler = () => {
             const duration = videoCMPlayer.duration;
             // 15秒未満なら2周、15秒以上なら1周
             videoCMTargetLoops = duration < 15 ? 2 : 1;
             console.log(`動画CM: ${duration.toFixed(1)}秒 → ${videoCMTargetLoops}周再生`);
         };
+        videoCMPlayer.addEventListener('loadedmetadata', videoCMMetadataHandler);
 
         // 動画終了時の処理
-        videoCMPlayer.onended = () => {
+        videoCMEndedHandler = () => {
             videoCMLoopCount++;
             if (videoCMLoopCount < videoCMTargetLoops) {
                 // まだループが必要なら最初から再生
@@ -1503,6 +1511,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             // 目標回数に達したら自然に停止（画面切り替えはrotateScreensが管理）
         };
+        videoCMPlayer.addEventListener('ended', videoCMEndedHandler);
 
         // 再生開始
         videoCMPlayer.play().then(() => {
@@ -1514,18 +1523,52 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // イベントリスナーのクリーンアップ関数
+    function cleanupVideoCMListeners() {
+        if (videoCMPlayer) {
+            if (videoCMMetadataHandler) {
+                videoCMPlayer.removeEventListener('loadedmetadata', videoCMMetadataHandler);
+                videoCMMetadataHandler = null;
+            }
+            if (videoCMEndedHandler) {
+                videoCMPlayer.removeEventListener('ended', videoCMEndedHandler);
+                videoCMEndedHandler = null;
+            }
+        }
+    }
+
     function stopVideoCM() {
         if (!videoCMPlayer) return;
 
         videoCMPlayer.pause();
         videoCMPlayer.currentTime = 0;
-        videoCMPlayer.onended = null; // イベントリスナーをクリア
+
+        // イベントリスナーをクリア
+        cleanupVideoCMListeners();
+
+        // 動画リソースを解放（メモリリーク防止）
+        videoCMPlayer.removeAttribute('src');
+        videoCMPlayer.load(); // srcクリア後にloadを呼ぶことでリソース解放
+
         isVideoCMPlaying = false;
         videoCMLoopCount = 0;
     }
 
     // ファミコンロゴ初期化
     initFamicom();
+
+    // ========== メモリ管理 ==========
+    // 長時間稼働時のメモリ蓄積を防ぐため、2時間ごとに自動リロード
+    const MEMORY_CLEANUP_INTERVAL = 2 * 60 * 60 * 1000; // 2時間
+    const pageStartTime = Date.now();
+
+    setInterval(() => {
+        const runningTime = Date.now() - pageStartTime;
+        if (runningTime >= MEMORY_CLEANUP_INTERVAL) {
+            console.log('メモリクリーンアップのため自動リロード実行');
+            location.reload();
+        }
+    }, 60000); // 1分ごとにチェック
 
     // ========== 天気予報機能 ==========
     // 天気コードからアイコンへの変換
