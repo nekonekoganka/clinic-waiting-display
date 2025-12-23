@@ -561,6 +561,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (screens[index].id === 'billiard-screen' || screens[index].id === 'billiard-line' || screens[index].id === 'billiard-multi') {
                 // ビリヤードアニメーション画面（横1列・横3行両対応）
                 stopParticleAnimation();
+                stopBilliardAnimation(); // 前のビリヤードアニメーションを確実に停止
                 startBilliardAnimation(screens[index].pattern);
                 stopFamicomAnimation();
                 stopVideoCM();
