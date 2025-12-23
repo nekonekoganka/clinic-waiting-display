@@ -519,7 +519,7 @@ td { padding: clamp(3px, 0.5vh, 8px); border: 1px solid var(--border-color); tex
     flex-wrap: wrap;
 }
 .weather-card {
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.75);
     backdrop-filter: blur(10px);
     border-radius: 24px;
     padding: clamp(20px, 3vh, 40px) clamp(25px, 3vw, 50px);
@@ -528,14 +528,15 @@ td { padding: clamp(3px, 0.5vh, 8px); border: 1px solid var(--border-color); tex
     max-width: 380px;
     min-width: 280px;
     box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-    border: 1px solid rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.5);
+    color: #333;
 }
 .weather-card-date {
     font-size: clamp(28px, 4vh, 40px);
     font-weight: bold;
     margin-bottom: 15px;
     padding-bottom: 15px;
-    border-bottom: 2px solid rgba(255,255,255,0.3);
+    border-bottom: 2px solid rgba(0,0,0,0.15);
 }
 .weather-card-icon {
     font-size: clamp(80px, 12vh, 140px);
@@ -560,18 +561,18 @@ td { padding: clamp(3px, 0.5vh, 8px); border: 1px solid var(--border-color); tex
     font-weight: bold;
 }
 .weather-temp-high {
-    color: #ffcccc;
+    color: #d32f2f;
 }
 .weather-temp-low {
-    color: #cce5ff;
+    color: #1976d2;
 }
 .weather-temp-label {
     font-size: clamp(14px, 2vh, 18px);
-    opacity: 0.8;
+    opacity: 0.7;
 }
 .weather-card-rain {
     font-size: clamp(22px, 3vh, 30px);
-    background: rgba(255,255,255,0.2);
+    background: rgba(0,0,0,0.08);
     padding: 10px 20px;
     border-radius: 12px;
     display: inline-block;
