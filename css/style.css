@@ -285,6 +285,9 @@ td { padding: clamp(3px, 0.5vh, 8px); border: 1px solid var(--border-color); tex
     object-fit: contain; /* アスペクト比を保ちながら画面いっぱいに拡大 */
     box-shadow: 0 10px 30px rgba(0,0,0,0.15);
     transition: opacity 0.25s ease-in-out;
+    /* GPUアクセラレーション */
+    transform: translateZ(0);
+    will-change: opacity;
 }
 .slideshow-image.fade-out {
     opacity: 0;
@@ -318,6 +321,10 @@ td { padding: clamp(3px, 0.5vh, 8px); border: 1px solid var(--border-color); tex
     width: auto;
     height: auto;
     object-fit: contain;
+    /* GPUアクセラレーション強化 */
+    transform: translateZ(0);
+    will-change: transform;
+    backface-visibility: hidden;
 }
 
 /* ========== 時計表示画面 ========== */
@@ -459,6 +466,8 @@ td { padding: clamp(3px, 0.5vh, 8px); border: 1px solid var(--border-color); tex
     max-height: 95vh;
     width: auto;
     height: auto;
+    /* GPUアクセラレーション */
+    transform: translateZ(0);
 }
 
 /* ========== 天気予報画面 ========== */
@@ -607,6 +616,8 @@ td { padding: clamp(3px, 0.5vh, 8px); border: 1px solid var(--border-color); tex
 #famicomCanvas {
     image-rendering: pixelated;
     image-rendering: crisp-edges;
+    /* GPUアクセラレーション */
+    transform: translateZ(0);
 }
 
 /* ========== ビリヤードロゴアニメーション画面 ========== */
