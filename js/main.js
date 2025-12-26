@@ -1727,7 +1727,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             maxPop = Math.max(...dayPops) + '%';
                         }
                     }
-                    
+
                     // 気温（timeDefinesを参照して正しく取得）
                     let tempHigh = '---';
                     let tempLow = '---';
@@ -1737,7 +1737,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         tempHigh = tempByDate[cardDateKey].high ? tempByDate[cardDateKey].high + '°' : '---';
                         tempLow = tempByDate[cardDateKey].low ? tempByDate[cardDateKey].low + '°' : '---';
                     }
-                    
+
+                    // 最高気温と最低気温が同じ場合は最低気温を非表示
+                    const showLowTemp = (tempHigh !== tempLow);
+
                     cardsHTML += `
                         <div class="weather-card">
                             <div class="weather-card-date">${dayLabel}</div>
@@ -1748,10 +1751,12 @@ document.addEventListener('DOMContentLoaded', () => {
                                     <div class="weather-temp-label">最高</div>
                                     ${tempHigh}
                                 </div>
+                                ${showLowTemp ? `
                                 <div class="weather-temp weather-temp-low">
                                     <div class="weather-temp-label">最低</div>
                                     ${tempLow}
                                 </div>
+                                ` : ''}
                             </div>
                             <div class="weather-card-rain">
                                 <span class="weather-card-rain-icon">☔</span>降水確率 ${maxPop}
