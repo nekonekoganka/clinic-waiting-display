@@ -1627,6 +1627,65 @@ document.addEventListener('DOMContentLoaded', () => {
         return `${label}<br>${month}/${day}(${weekday})`;
     }
 
+    // ========== 気温データのローカルストレージ管理 ==========
+    const WEATHER_TEMPS_KEY = 'weather_temps';
+
+    // 気温データをローカルストレージに保存
+    function saveTempsToStorage(tempByDate) {
+        try {
+            // 既存データを取得
+            const existing = JSON.parse(localStorage.getItem(WEATHER_TEMPS_KEY) || '{}');
+
+            // 新しいデータをマージ（今日以降のデータのみ）
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const merged = {};
+
+            // 既存データから今日以降のものを残す
+            Object.keys(existing).forEach(dateKey => {
+                const [year, month, day] = dateKey.split('-').map(Number);
+                const date = new Date(year, month - 1, day);
+                if (date >= today) {
+                    merged[dateKey] = existing[dateKey];
+                }
+            });
+
+            // 新しいデータを追加（上書き）
+            Object.keys(tempByDate).forEach(dateKey => {
+                const data = tempByDate[dateKey];
+                if (data.high || data.low) {
+                    if (!merged[dateKey]) {
+                        merged[dateKey] = {};
+                    }
+                    // 有効な値のみ保存
+                    if (data.high && data.high !== '') {
+                        merged[dateKey].high = data.high;
+                    }
+                    if (data.low && data.low !== '') {
+                        merged[dateKey].low = data.low;
+                    }
+                }
+            });
+
+            localStorage.setItem(WEATHER_TEMPS_KEY, JSON.stringify(merged));
+            console.log('気温データを保存:', merged);
+        } catch (e) {
+            console.log('ローカルストレージ保存エラー:', e);
+        }
+    }
+
+    // ローカルストレージから気温データを取得
+    function getTempsFromStorage(dateKey) {
+        try {
+            const data = JSON.parse(localStorage.getItem(WEATHER_TEMPS_KEY) || '{}');
+            return data[dateKey] || { high: null, low: null };
+        } catch (e) {
+            console.log('ローカルストレージ取得エラー:', e);
+            return { high: null, low: null };
+        }
+    }
+
     // 天気データを取得・表示
     function fetchWeatherData() {
         const weatherCardsEl = document.getElementById('weather-cards');
@@ -1689,7 +1748,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 });
                 console.log('tempByDate:', tempByDate);
-                
+
+                // 気温データをローカルストレージに保存（明日以降のデータを保持）
+                saveTempsToStorage(tempByDate);
+
                 // カードを生成（データがある日数分）
                 let cardsHTML = '';
                 // 明後日のデータがあるか確認（天気情報が存在するか）
@@ -1728,18 +1790,26 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     }
 
-                    // 気温（timeDefinesを参照して正しく取得）
-                    let tempHigh = '---';
-                    let tempLow = '---';
+                    // 気温（APIデータ → ローカルストレージの順でフォールバック取得）
                     const cardDate = new Date(timeDefines[i]);
                     const cardDateKey = `${cardDate.getFullYear()}-${cardDate.getMonth() + 1}-${cardDate.getDate()}`;
-                    if (tempByDate[cardDateKey]) {
-                        tempHigh = tempByDate[cardDateKey].high ? tempByDate[cardDateKey].high + '°' : '---';
-                        tempLow = tempByDate[cardDateKey].low ? tempByDate[cardDateKey].low + '°' : '---';
-                    }
 
-                    // 最高気温と最低気温が同じ場合は最低気温を非表示
-                    const showLowTemp = (tempHigh !== tempLow);
+                    // APIからの気温データ
+                    let apiHigh = tempByDate[cardDateKey]?.high || null;
+                    let apiLow = tempByDate[cardDateKey]?.low || null;
+
+                    // ローカルストレージからフォールバック取得
+                    const storedTemps = getTempsFromStorage(cardDateKey);
+                    const finalHigh = apiHigh || storedTemps.high;
+                    const finalLow = apiLow || storedTemps.low;
+
+                    // 表示用の値（データがあれば°を付ける）
+                    const tempHigh = finalHigh ? finalHigh + '°' : null;
+                    const tempLow = finalLow ? finalLow + '°' : null;
+
+                    // データがある場合のみ表示
+                    const showHighTemp = (tempHigh !== null);
+                    const showLowTemp = (tempLow !== null);
 
                     cardsHTML += `
                         <div class="weather-card">
@@ -1747,10 +1817,12 @@ document.addEventListener('DOMContentLoaded', () => {
                             <div class="weather-card-icon">${icon}</div>
                             <div class="weather-card-text">${weather}</div>
                             <div class="weather-card-temps">
+                                ${showHighTemp ? `
                                 <div class="weather-temp weather-temp-high">
                                     <div class="weather-temp-label">最高</div>
                                     ${tempHigh}
                                 </div>
+                                ` : ''}
                                 ${showLowTemp ? `
                                 <div class="weather-temp weather-temp-low">
                                     <div class="weather-temp-label">最低</div>
