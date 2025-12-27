@@ -1686,11 +1686,27 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // ========== 天気データのキャッシュ管理 ==========
+    let lastWeatherFetch = 0; // 最後にAPIを取得した時刻
+    let cachedWeatherHTML = null; // キャッシュされた天気カードHTML
+    let cachedUpdateTime = null; // キャッシュされた更新時刻テキスト
+    const WEATHER_CACHE_DURATION = 60 * 60 * 1000; // 1時間（ミリ秒）
+
     // 天気データを取得・表示
     function fetchWeatherData() {
         const weatherCardsEl = document.getElementById('weather-cards');
         const updateTimeEl = document.getElementById('weather-update-time');
-        
+
+        // キャッシュが有効な場合はキャッシュを使用
+        const now = Date.now();
+        if (cachedWeatherHTML && (now - lastWeatherFetch) < WEATHER_CACHE_DURATION) {
+            console.log('天気データ: キャッシュを使用（残り' + Math.round((WEATHER_CACHE_DURATION - (now - lastWeatherFetch)) / 60000) + '分）');
+            weatherCardsEl.innerHTML = cachedWeatherHTML;
+            if (cachedUpdateTime) updateTimeEl.textContent = cachedUpdateTime;
+            return;
+        }
+
+        console.log('天気データ: APIから取得');
         fetch('https://www.jma.go.jp/bosai/forecast/data/forecast/110000.json')
             .then(response => {
                 if (!response.ok) throw new Error('Network error');
@@ -1838,11 +1854,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 
                 weatherCardsEl.innerHTML = cardsHTML;
-                
+
                 // 更新日時
                 const reportTime = new Date(data[0].reportDatetime);
-                updateTimeEl.textContent = `${reportTime.getMonth() + 1}/${reportTime.getDate()} ${reportTime.getHours()}:${String(reportTime.getMinutes()).padStart(2, '0')} 発表`;
-                
+                const updateTimeText = `${reportTime.getMonth() + 1}/${reportTime.getDate()} ${reportTime.getHours()}:${String(reportTime.getMinutes()).padStart(2, '0')} 発表`;
+                updateTimeEl.textContent = updateTimeText;
+
+                // キャッシュを保存
+                cachedWeatherHTML = cardsHTML;
+                cachedUpdateTime = updateTimeText;
+                lastWeatherFetch = Date.now();
+                console.log('天気データ: キャッシュを更新');
+
                 weatherDataLoaded = true;
             })
             .catch(error => {
