@@ -1744,6 +1744,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // 気温データを日付・種別ごとに整理
                 const tempByDate = {};
+                const now = new Date();
+                const todayStr = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
+                const currentHour = now.getHours();
+
                 tempTimeDefines.forEach((td, idx) => {
                     const date = new Date(td);
                     const dateKey = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
@@ -1754,7 +1758,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     // 時刻で最高・最低を判定（0-6時頃:最低、9-15時頃:最高）
                     if (hour >= 0 && hour <= 6) {
-                        if (temps[idx] && temps[idx] !== '') {
+                        // 今日のデータで、すでに7時を過ぎている場合は最低気温データを無視
+                        // （APIが最高気温と同じ値を返すため、ローカルストレージの値を優先）
+                        const isToday = (dateKey === todayStr);
+                        if (isToday && currentHour >= 7) {
+                            console.log(`    → 今日の最低気温データをスキップ（現在${currentHour}時、ローカルストレージを優先）`);
+                        } else if (temps[idx] && temps[idx] !== '') {
                             tempByDate[dateKey].low = temps[idx];
                         }
                     } else if (hour >= 9 && hour <= 15) {
