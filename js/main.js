@@ -1935,13 +1935,13 @@ document.addEventListener('DOMContentLoaded', () => {
         12: { clear: 2, cloudy: 1 }   // 12月
     };
 
-    // UVレベルの定義
+    // UVレベルの定義（シンプルな1行アドバイス）
     const UV_LEVELS = [
-        { max: 2, level: 'low', label: '弱い', color: '#4cd964', advice: ['特別な対策は不要です', '長時間の日光浴は避けましょう'] },
-        { max: 5, level: 'moderate', label: '中程度', color: '#ffcc00', advice: ['日中は日陰を利用しましょう', '長時間の外出時はサングラス推奨'] },
-        { max: 7, level: 'high', label: '強い', color: '#ff9500', advice: ['サングラス（UV400）を着用', 'つばの広い帽子で直射を避ける', '10〜14時の外出を控えめに'] },
-        { max: 10, level: 'very-high', label: '非常に強い', color: '#ff3b30', advice: ['UV400サングラス必須', 'つばの広い帽子を着用', '10〜14時の外出を避ける'] },
-        { max: Infinity, level: 'extreme', label: '極端に強い', color: '#af52de', advice: ['外出を最小限に', 'UV400サングラス・帽子必須', '眼への影響に特に注意'] }
+        { max: 2, level: 'low', label: '弱い', color: '#4cd964', advice: '特別な対策は不要です' },
+        { max: 5, level: 'moderate', label: '中程度', color: '#ffcc00', advice: '長時間の外出時はサングラス推奨' },
+        { max: 7, level: 'high', label: '強い', color: '#ff9500', advice: 'サングラス・帽子で眼を保護しましょう' },
+        { max: 10, level: 'very-high', label: '非常に強い', color: '#ff3b30', advice: 'UV400サングラス必須！外出を控えて' },
+        { max: Infinity, level: 'extreme', label: '極端に強い', color: '#af52de', advice: '外出を最小限に！眼への影響大' }
     ];
 
     // キャッシュされた天気コード（天気画面から取得）
@@ -1981,7 +1981,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const uvValueEl = document.getElementById('uv-index-value');
         const uvLevelEl = document.getElementById('uv-index-level');
         const uvGaugeBar = document.getElementById('uv-gauge-bar');
-        const uvAdviceList = document.getElementById('uv-advice-list');
+        const uvAdviceText = document.getElementById('uv-advice-text');
 
         // UVインデックスを取得
         const uvIndex = getCurrentUVIndex();
@@ -1989,7 +1989,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 数値を更新
         uvValueEl.textContent = uvIndex;
-        uvValueEl.style.color = levelInfo.color;
 
         // レベルラベルを更新
         uvLevelEl.textContent = levelInfo.label;
@@ -2004,8 +2003,8 @@ document.addEventListener('DOMContentLoaded', () => {
         uvScreen.classList.remove('uv-level-low', 'uv-level-moderate', 'uv-level-high', 'uv-level-very-high', 'uv-level-extreme');
         uvScreen.classList.add(`uv-level-${levelInfo.level}`);
 
-        // アドバイスを更新
-        uvAdviceList.innerHTML = levelInfo.advice.map(text => `<li>${text}</li>`).join('');
+        // アドバイスを更新（1行テキスト）
+        uvAdviceText.textContent = levelInfo.advice;
 
         console.log(`UV情報: 月=${new Date().getMonth() + 1}, 天気コード=${cachedWeatherCode}, UV=${uvIndex}, レベル=${levelInfo.label}`);
     }
