@@ -160,6 +160,41 @@
         </div>
     </div>
 
+    <!-- 紫外線情報画面 -->
+    <div class="fullscreen-overlay uv-screen" id="uv-screen">
+        <div class="uv-content">
+            <div class="uv-header">
+                <div class="uv-title">☀️ 今日の紫外線情報</div>
+            </div>
+            <div class="uv-main">
+                <div class="uv-index-display">
+                    <div class="uv-index-label">UVインデックス</div>
+                    <div class="uv-index-value" id="uv-index-value">-</div>
+                    <div class="uv-index-level" id="uv-index-level">取得中...</div>
+                    <div class="uv-gauge-container">
+                        <div class="uv-gauge-bar" id="uv-gauge-bar"></div>
+                        <div class="uv-gauge-labels">
+                            <span>弱い</span>
+                            <span>非常に強い</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="uv-advice-box" id="uv-advice-box">
+                    <div class="uv-advice-title">🕶️ 眼を守るために</div>
+                    <ul class="uv-advice-list" id="uv-advice-list">
+                        <li>サングラス（UV400）を着用</li>
+                        <li>つばの広い帽子で直射を避ける</li>
+                        <li>10〜14時の外出を控えめに</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="uv-footer">
+                <div class="uv-footer-icon">💡</div>
+                <div class="uv-footer-text">紫外線は白内障・翼状片の原因になることがあります</div>
+            </div>
+        </div>
+    </div>
+
     <div class="fullscreen-overlay logo-animation-screen" id="logo-animation-screen">
         <div class="logo-animation-container">
             <canvas id="particleCanvas"></canvas>

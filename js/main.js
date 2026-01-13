@@ -11,6 +11,7 @@ const CONFIG = {
         clock: 15000,         // 時計画面
         weather: 30000,       // 天気予報画面
         weatherError: 3000,   // 天気予報エラー時
+        uv: 20000,            // 紫外線情報画面
         logo: 15000,          // ロゴアニメーション（パーティクル）
         famicom: 15000,       // ファミコン風ロゴ
         slideshowDefault: 15000 // スライドショーのデフォルト表示時間（規則外ファイル用）
@@ -273,6 +274,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { id: 'billiard-screen', duration: CONFIG.durations.billiard },   // ビリヤードロゴ
         { id: 'clock-screen', duration: CONFIG.durations.clock },         // 時計表示
         { id: 'weather-screen', duration: CONFIG.durations.weather },     // 天気予報
+        { id: 'uv-screen', duration: CONFIG.durations.uv },               // 紫外線情報
         { id: 'logo-animation-screen', duration: CONFIG.durations.logo },  // ロゴアニメーション（パーティクル）
         { id: 'famicom-logo-screen', duration: CONFIG.durations.famicom }  // ファミコン風ロゴ
     ];
@@ -579,6 +581,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 stopVideoCM();
                 updateWeatherScreenBackground(); // 時間帯に応じた背景に変更
                 fetchWeatherData();
+            } else if (screens[index].id === 'uv-screen') {
+                // 紫外線情報画面
+                stopParticleAnimation();
+                stopBilliardAnimation();
+                stopFamicomAnimation();
+                stopVideoCM();
+                updateUVScreen();
             } else {
                 // その他の画面ではアニメーションを停止
                 stopParticleAnimation();
@@ -1790,6 +1799,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     const weather = weathers[i] ? weathers[i].replace(/　/g, ' ') : '---';
                     const weatherCode = weatherCodes[i];
                     const icon = getWeatherIcon(weatherCode);
+
+                    // 今日の天気コードをUV計算用にキャッシュ
+                    if (i === 0) {
+                        cachedWeatherCode = weatherCode;
+                    }
                     
                     // 降水確率（その日の最大値を表示）
                     let maxPop = '---';
@@ -1902,6 +1916,98 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             weatherScreen.classList.add('time-night');    // 夜
         }
+    }
+
+    // ========== 紫外線情報画面 ==========
+    // 埼玉県の月別平均UVインデックス（気象庁データに基づく概算値）
+    const UV_DATA_BY_MONTH = {
+        1: { clear: 2, cloudy: 1 },   // 1月
+        2: { clear: 3, cloudy: 2 },   // 2月
+        3: { clear: 5, cloudy: 3 },   // 3月
+        4: { clear: 6, cloudy: 4 },   // 4月
+        5: { clear: 8, cloudy: 5 },   // 5月
+        6: { clear: 9, cloudy: 5 },   // 6月
+        7: { clear: 10, cloudy: 6 },  // 7月
+        8: { clear: 10, cloudy: 6 },  // 8月
+        9: { clear: 7, cloudy: 4 },   // 9月
+        10: { clear: 5, cloudy: 3 },  // 10月
+        11: { clear: 3, cloudy: 2 },  // 11月
+        12: { clear: 2, cloudy: 1 }   // 12月
+    };
+
+    // UVレベルの定義
+    const UV_LEVELS = [
+        { max: 2, level: 'low', label: '弱い', color: '#4cd964', advice: ['特別な対策は不要です', '長時間の日光浴は避けましょう'] },
+        { max: 5, level: 'moderate', label: '中程度', color: '#ffcc00', advice: ['日中は日陰を利用しましょう', '長時間の外出時はサングラス推奨'] },
+        { max: 7, level: 'high', label: '強い', color: '#ff9500', advice: ['サングラス（UV400）を着用', 'つばの広い帽子で直射を避ける', '10〜14時の外出を控えめに'] },
+        { max: 10, level: 'very-high', label: '非常に強い', color: '#ff3b30', advice: ['UV400サングラス必須', 'つばの広い帽子を着用', '10〜14時の外出を避ける'] },
+        { max: Infinity, level: 'extreme', label: '極端に強い', color: '#af52de', advice: ['外出を最小限に', 'UV400サングラス・帽子必須', '眼への影響に特に注意'] }
+    ];
+
+    // キャッシュされた天気コード（天気画面から取得）
+    let cachedWeatherCode = null;
+
+    // 天気コードから晴れ/曇りを判定
+    function isWeatherClear(weatherCode) {
+        if (!weatherCode) return true; // デフォルトは晴れ
+        const code = String(weatherCode);
+        // 100番台は晴れ、200番台は曇り、300番台以降は雨/雪
+        if (code.startsWith('1')) return true;  // 晴れ
+        if (code.startsWith('2')) return false; // 曇り
+        return false; // 雨・雪は曇り扱い
+    }
+
+    // 現在のUVインデックスを取得
+    function getCurrentUVIndex() {
+        const month = new Date().getMonth() + 1;
+        const uvData = UV_DATA_BY_MONTH[month];
+        const isClear = isWeatherClear(cachedWeatherCode);
+        return isClear ? uvData.clear : uvData.cloudy;
+    }
+
+    // UVレベル情報を取得
+    function getUVLevelInfo(uvIndex) {
+        for (const level of UV_LEVELS) {
+            if (uvIndex <= level.max) {
+                return level;
+            }
+        }
+        return UV_LEVELS[UV_LEVELS.length - 1];
+    }
+
+    // 紫外線画面を更新
+    function updateUVScreen() {
+        const uvScreen = document.getElementById('uv-screen');
+        const uvValueEl = document.getElementById('uv-index-value');
+        const uvLevelEl = document.getElementById('uv-index-level');
+        const uvGaugeBar = document.getElementById('uv-gauge-bar');
+        const uvAdviceList = document.getElementById('uv-advice-list');
+
+        // UVインデックスを取得
+        const uvIndex = getCurrentUVIndex();
+        const levelInfo = getUVLevelInfo(uvIndex);
+
+        // 数値を更新
+        uvValueEl.textContent = uvIndex;
+        uvValueEl.style.color = levelInfo.color;
+
+        // レベルラベルを更新
+        uvLevelEl.textContent = levelInfo.label;
+
+        // ゲージの位置を更新（0-11+をパーセントに変換）
+        const gaugePercent = Math.min((uvIndex / 11) * 100, 100);
+        uvGaugeBar.style.setProperty('--gauge-position', `${gaugePercent}%`);
+        // CSSの::afterの位置を動的に設定
+        uvGaugeBar.style.cssText = `--gauge-pos: ${gaugePercent}%`;
+
+        // 背景色を更新
+        uvScreen.classList.remove('uv-level-low', 'uv-level-moderate', 'uv-level-high', 'uv-level-very-high', 'uv-level-extreme');
+        uvScreen.classList.add(`uv-level-${levelInfo.level}`);
+
+        // アドバイスを更新
+        uvAdviceList.innerHTML = levelInfo.advice.map(text => `<li>${text}</li>`).join('');
+
+        console.log(`UV情報: 月=${new Date().getMonth() + 1}, 天気コード=${cachedWeatherCode}, UV=${uvIndex}, レベル=${levelInfo.label}`);
     }
 
     // 初期化
