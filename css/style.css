@@ -747,3 +747,182 @@ td { padding: clamp(3px, 0.5vh, 8px); border: 1px solid var(--border-color); tex
 }
 .billiard-sparkle-small::before { height: 2px; }
 .billiard-sparkle-small::after { width: 2px; }
+
+/* ========== 紫外線情報画面 ========== */
+.uv-screen {
+    background: linear-gradient(135deg, #ff9500 0%, #ff5e3a 50%, #ff2d55 100%);
+}
+.uv-screen.uv-level-low {
+    background: linear-gradient(135deg, #4cd964 0%, #34c759 50%, #30d158 100%);
+}
+.uv-screen.uv-level-moderate {
+    background: linear-gradient(135deg, #ffcc00 0%, #ff9500 50%, #ff9500 100%);
+}
+.uv-screen.uv-level-high {
+    background: linear-gradient(135deg, #ff9500 0%, #ff5e3a 50%, #ff3b30 100%);
+}
+.uv-screen.uv-level-very-high {
+    background: linear-gradient(135deg, #ff3b30 0%, #ff2d55 50%, #af52de 100%);
+}
+.uv-screen.uv-level-extreme {
+    background: linear-gradient(135deg, #af52de 0%, #5856d6 50%, #007aff 100%);
+}
+.uv-screen.active {
+    display: flex;
+}
+.uv-content {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(30px, 5vh, 60px);
+    gap: clamp(20px, 3vh, 40px);
+}
+.uv-header {
+    text-align: center;
+}
+.uv-title {
+    font-size: clamp(40px, 6vh, 60px);
+    font-weight: bold;
+    color: white;
+    text-shadow: 2px 2px 8px rgba(0,0,0,0.3);
+}
+.uv-main {
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+    gap: clamp(30px, 4vw, 60px);
+    width: 100%;
+    max-width: 1200px;
+}
+.uv-index-display {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(10px);
+    border-radius: 24px;
+    padding: clamp(25px, 4vh, 50px) clamp(40px, 5vw, 80px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    text-align: center;
+    flex: 1;
+    max-width: 450px;
+}
+.uv-index-label {
+    font-size: clamp(24px, 3.5vh, 36px);
+    font-weight: bold;
+    color: #555;
+    margin-bottom: 10px;
+}
+.uv-index-value {
+    font-size: clamp(100px, 15vh, 160px);
+    font-weight: bold;
+    color: #ff5e3a;
+    line-height: 1;
+    margin: 10px 0;
+}
+.uv-index-level {
+    font-size: clamp(28px, 4vh, 44px);
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 20px;
+}
+.uv-gauge-container {
+    width: 100%;
+    margin-top: 15px;
+}
+.uv-gauge-bar {
+    height: clamp(16px, 2.5vh, 24px);
+    background: linear-gradient(to right,
+        #4cd964 0%,
+        #ffcc00 25%,
+        #ff9500 50%,
+        #ff3b30 75%,
+        #af52de 100%
+    );
+    border-radius: 12px;
+    position: relative;
+    overflow: visible;
+}
+.uv-gauge-bar::after {
+    content: '';
+    position: absolute;
+    width: clamp(20px, 3vh, 30px);
+    height: clamp(20px, 3vh, 30px);
+    background: white;
+    border: 4px solid #333;
+    border-radius: 50%;
+    top: 50%;
+    transform: translateY(-50%);
+    left: var(--gauge-pos, 0%);
+    transition: left 0.5s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+.uv-gauge-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    font-size: clamp(14px, 2vh, 20px);
+    color: #666;
+    font-weight: bold;
+}
+.uv-advice-box {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(10px);
+    border-radius: 24px;
+    padding: clamp(25px, 4vh, 50px) clamp(30px, 4vw, 50px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    flex: 1;
+    max-width: 450px;
+    display: flex;
+    flex-direction: column;
+}
+.uv-advice-title {
+    font-size: clamp(28px, 4vh, 40px);
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 20px;
+    text-align: center;
+}
+.uv-advice-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: clamp(15px, 2.5vh, 25px);
+}
+.uv-advice-list li {
+    font-size: clamp(22px, 3.2vh, 32px);
+    color: #444;
+    padding-left: 35px;
+    position: relative;
+    line-height: 1.4;
+}
+.uv-advice-list li::before {
+    content: '•';
+    position: absolute;
+    left: 10px;
+    color: #ff5e3a;
+    font-size: 1.5em;
+    line-height: 1;
+}
+.uv-footer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    background: rgba(255, 255, 255, 0.3);
+    padding: clamp(15px, 2.5vh, 25px) clamp(30px, 4vw, 50px);
+    border-radius: 16px;
+}
+.uv-footer-icon {
+    font-size: clamp(30px, 4.5vh, 45px);
+}
+.uv-footer-text {
+    font-size: clamp(22px, 3.2vh, 32px);
+    font-weight: bold;
+    color: white;
+    text-shadow: 1px 1px 4px rgba(0,0,0,0.3);
+}
