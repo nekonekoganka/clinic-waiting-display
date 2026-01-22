@@ -272,10 +272,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 後半の固定画面
     const endScreens = [
-        { id: 'multilang-grid-screen', duration: CONFIG.durations.multilang },   // 多言語グリッド画面
         { id: 'clock-screen', duration: CONFIG.durations.clock },         // 時計表示
         { id: 'weather-screen', duration: CONFIG.durations.weather },     // 天気予報
-        { id: 'uv-screen', duration: CONFIG.durations.uv }                // 紫外線情報
+        { id: 'uv-screen', duration: CONFIG.durations.uv },               // 紫外線情報
+        { id: 'multilang-grid-screen', duration: CONFIG.durations.multilang }   // 多言語グリッド画面
     ];
 
     // スライドショー画像を含む全画面リスト
