@@ -275,9 +275,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { id: 'multilang-grid-screen', duration: CONFIG.durations.multilang },   // 多言語グリッド画面
         { id: 'clock-screen', duration: CONFIG.durations.clock },         // 時計表示
         { id: 'weather-screen', duration: CONFIG.durations.weather },     // 天気予報
-        { id: 'uv-screen', duration: CONFIG.durations.uv },               // 紫外線情報
-        { id: 'logo-animation-screen', duration: CONFIG.durations.logo },  // ロゴアニメーション（パーティクル）
-        { id: 'famicom-logo-screen', duration: CONFIG.durations.famicom }  // ファミコン風ロゴ
+        { id: 'uv-screen', duration: CONFIG.durations.uv }                // 紫外線情報
     ];
 
     // スライドショー画像を含む全画面リスト
