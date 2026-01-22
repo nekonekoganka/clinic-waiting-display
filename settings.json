@@ -34,7 +34,13 @@
         "type": "video",
         "src": "cm/待合室_ピクセルアニメーション.mp4",
         "duration": 15,
-        "enabled": true
+        "enabled": true,
+        "followedBy": {
+          "id": null,
+          "name": "メイン画面（花粉カレンダー）",
+          "type": "main",
+          "duration": 15
+        }
       },
       {
         "id": "billiard-multi",
