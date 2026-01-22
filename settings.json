@@ -45,9 +45,9 @@
         "enabled": true
       },
       {
-        "id": "famicom-logo-screen",
-        "name": "ファミコン風ロゴ",
-        "type": "animation",
+        "id": null,
+        "name": "メイン画面（花粉カレンダー）",
+        "type": "main",
         "duration": 15,
         "enabled": true
       },
@@ -56,6 +56,13 @@
         "name": "空ピクセルアート動画",
         "type": "video",
         "src": "cm/空_ピクセルアート動画.mp4",
+        "duration": 15,
+        "enabled": true
+      },
+      {
+        "id": "famicom-logo-screen",
+        "name": "ファミコン風ロゴ",
+        "type": "animation",
         "duration": 15,
         "enabled": true
       }
