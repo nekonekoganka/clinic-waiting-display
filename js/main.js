@@ -8,6 +8,7 @@ const CONFIG = {
         alert: 15000,         // 花粉注意画面
         tips: 15000,          // 対策ポイント(テキスト)
         billiard: 30000,      // ビリヤードロゴアニメーション
+        multilang: 30000,     // 多言語グリッド画面
         clock: 15000,         // 時計画面
         weather: 30000,       // 天気予報画面
         weatherError: 3000,   // 天気予報エラー時
@@ -271,7 +272,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 後半の固定画面
     const endScreens = [
-        { id: 'billiard-screen', duration: CONFIG.durations.billiard },   // ビリヤードロゴ
+        { id: 'multilang-grid-screen', duration: CONFIG.durations.multilang },   // 多言語グリッド画面
         { id: 'clock-screen', duration: CONFIG.durations.clock },         // 時計表示
         { id: 'weather-screen', duration: CONFIG.durations.weather },     // 天気予報
         { id: 'uv-screen', duration: CONFIG.durations.uv },               // 紫外線情報
@@ -588,6 +589,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 stopFamicomAnimation();
                 stopVideoCM();
                 updateUVScreen();
+            } else if (screens[index].id === 'multilang-grid-screen') {
+                // 多言語グリッド画面
+                stopParticleAnimation();
+                stopBilliardAnimation();
+                stopFamicomAnimation();
+                stopVideoCM();
+                resetMultilangAnimation();
             } else {
                 // その他の画面ではアニメーションを停止
                 stopParticleAnimation();
@@ -1475,6 +1483,28 @@ document.addEventListener('DOMContentLoaded', () => {
             famicomAnimationId = null;
         }
         isFamicomAnimating = false;
+    }
+
+    // ========== 多言語グリッドアニメーション ==========
+    function resetMultilangAnimation() {
+        // 多言語グリッド画面のアニメーションをリセット
+        const multilangScreen = document.getElementById('multilang-grid-screen');
+        if (multilangScreen) {
+            // アニメーションをリセットするため、一度要素を再描画
+            const items = multilangScreen.querySelectorAll('.multilang-item, .multilang-center-title');
+            items.forEach(item => {
+                item.style.animation = 'none';
+                item.offsetHeight; // reflow を強制
+                item.style.animation = '';
+            });
+            // フラッシュオーバーレイもリセット
+            const flashOverlay = document.getElementById('multilang-flash-overlay');
+            if (flashOverlay) {
+                flashOverlay.style.animation = 'none';
+                flashOverlay.offsetHeight;
+                flashOverlay.style.animation = '';
+            }
+        }
     }
 
     // ========== 動画CM機能 ==========
