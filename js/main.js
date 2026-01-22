@@ -451,6 +451,17 @@ document.addEventListener('DOMContentLoaded', () => {
                             pattern: cm.pattern // ビリヤード用パターン
                         });
                     }
+
+                    // followedByがある場合、追加の画面を挿入
+                    if (cm.followedBy) {
+                        contentScreens.push({
+                            id: cm.followedBy.id,
+                            duration: cm.followedBy.duration * 1000,
+                            isCM: true
+                        });
+                        console.log('followedBy挿入:', cm.followedBy.name);
+                    }
+
                     cmIndex++;
                 }
             });
