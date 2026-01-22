@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ふじみ野ひかり眼科 - 全言語一覧（フラッシュ版）</title>
+    <!-- Google Fonts 読み込み -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500&family=Noto+Serif+Bengali:wght@400;500&family=Noto+Serif+Devanagari:wght@400;500&family=Noto+Serif+Ethiopic:wght@400;500&family=Noto+Serif+Georgian:wght@400;500&family=Noto+Serif+Hebrew:wght@400;500&family=Noto+Serif+KR:wght@400;500&family=Noto+Serif+Myanmar:wght@400;500&family=Noto+Serif+Sinhala:wght@400;500&family=Noto+Serif+TC:wght@400;500&family=Noto+Serif+Thai:wght@400;500&family=Playfair+Display:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #000000;
+            color: #FFFFFF;
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            width: 1920px;
+            height: 1080px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 全画面フラッシュ用オーバーレイ */
+        .flash-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 215, 0, 1);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 1000;
+            animation: screen-flash 1.5s ease-in-out 11s;
+        }
+
+        @keyframes screen-flash {
+            0% { opacity: 0; }
+            40% { opacity: 0.35; }
+            100% { opacity: 0; }
+        }
+
+        /* グリッドコンテナ */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px 80px;
+            width: 1750px;
+            padding: 0 40px;
+        }
+
+        /* 各言語アイテム */
+        .lang-item {
+            text-align: center;
+            padding: 15px 10px;
+            opacity: 0;
+            animation: fade-in 0.8s ease-out forwards;
+        }
+
+        /* 各言語が順番に出現するアニメーション */
+        @keyframes fade-in {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 各言語のディレイ（バラバラに出現・1秒〜10秒かけて） */
+        .lang-item:nth-child(1) { animation-delay: 1.0s; }
+        .lang-item:nth-child(2) { animation-delay: 3.0s; }
+        .lang-item:nth-child(3) { animation-delay: 2.0s; }
+        .lang-item:nth-child(4) { animation-delay: 4.0s; }
+        .lang-item:nth-child(5) { animation-delay: 1.5s; }
+        .lang-item:nth-child(6) { animation-delay: 5.0s; }
+        .lang-item:nth-child(7) { animation-delay: 2.5s; }
+        .lang-item:nth-child(8) { animation-delay: 6.5s; }
+        .lang-item:nth-child(9) { animation-delay: 3.5s; }
+        .lang-item:nth-child(10) { animation-delay: 5.5s; }
+        .lang-item:nth-child(11) { animation-delay: 4.5s; }
+        .lang-item:nth-child(12) { animation-delay: 7.5s; }
+        .lang-item:nth-child(13) { animation-delay: 6.0s; }
+        .lang-item:nth-child(14) { animation-delay: 8.5s; }
+        .lang-item:nth-child(15) { animation-delay: 7.0s; }
+        .lang-item:nth-child(16) { animation-delay: 9.5s; }
+        .lang-item:nth-child(17) { animation-delay: 8.0s; }
+        .lang-item:nth-child(18) { animation-delay: 10.0s; }
+
+
+        .lang-item .name {
+            font-size: 2rem;
+            display: block;
+            margin-bottom: 10px;
+            color: #FFFFFF;
+        }
+
+        .lang-item .language {
+            font-size: 1.5rem;
+            color: #FFD700;
+        }
+
+        /* 中央の日本語タイトル */
+        .center-title {
+            text-align: center;
+            padding: 15px 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            animation: fade-in-glow 1s ease-out forwards;
+            animation-delay: 0s;
+        }
+
+        .center-title .name {
+            font-size: 3rem;
+            font-weight: bold;
+            display: block;
+            color: #FFD700;
+            letter-spacing: 0.05em;
+            white-space: nowrap;
+            animation: gentle-glow 3s ease-in-out infinite, super-glow 2s ease-in-out 11.3s;
+        }
+
+        @keyframes fade-in-glow {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes gentle-glow {
+            0%, 100% {
+                text-shadow: 
+                    0 0 10px rgba(255, 215, 0, 0.5),
+                    0 0 20px rgba(255, 215, 0, 0.3),
+                    0 0 30px rgba(255, 215, 0, 0.2);
+            }
+            50% {
+                text-shadow: 
+                    0 0 20px rgba(255, 215, 0, 0.8),
+                    0 0 40px rgba(255, 215, 0, 0.6),
+                    0 0 60px rgba(255, 215, 0, 0.4),
+                    0 0 80px rgba(255, 215, 0, 0.2);
+            }
+        }
+
+        /* フラッシュ後の強発光アニメーション（拡大なし） */
+        @keyframes super-glow {
+            0% {
+                text-shadow: 
+                    0 0 10px rgba(255, 215, 0, 0.5),
+                    0 0 20px rgba(255, 215, 0, 0.3),
+                    0 0 30px rgba(255, 215, 0, 0.2);
+            }
+            40% {
+                text-shadow: 
+                    0 0 40px rgba(255, 215, 0, 1),
+                    0 0 80px rgba(255, 215, 0, 1),
+                    0 0 120px rgba(255, 215, 0, 0.9),
+                    0 0 180px rgba(255, 215, 0, 0.7),
+                    0 0 250px rgba(255, 215, 0, 0.5);
+            }
+            100% {
+                text-shadow: 
+                    0 0 10px rgba(255, 215, 0, 0.5),
+                    0 0 20px rgba(255, 215, 0, 0.3),
+                    0 0 30px rgba(255, 215, 0, 0.2);
+            }
+        }
+
+        /* フォント指定 */
+        .font-playfair { font-family: 'Playfair Display', serif; }
+        .font-tc { font-family: 'Noto Serif TC', serif; }
+        .font-kr { font-family: 'Noto Serif KR', serif; }
+        .font-arabic { font-family: 'Noto Naskh Arabic', serif; }
+        .font-thai { font-family: 'Noto Serif Thai', serif; }
+        .font-hebrew { font-family: 'Noto Serif Hebrew', serif; }
+        .font-devanagari { font-family: 'Noto Serif Devanagari', serif; }
+        .font-myanmar { font-family: 'Noto Serif Myanmar', serif; }
+        .font-georgian { font-family: 'Noto Serif Georgian', serif; }
+        .font-bengali { font-family: 'Noto Serif Bengali', serif; }
+        .font-ethiopic { font-family: 'Noto Serif Ethiopic', serif; }
+        .font-sinhala { font-family: 'Noto Serif Sinhala', serif; }
+    </style>
+</head>
+<body>
+    <!-- 全画面フラッシュ用オーバーレイ -->
+    <div class="flash-overlay"></div>
+
+    <!-- 3列×6行グリッド（17言語＋中央に日本語） -->
+    <div class="grid-container">
+        <!-- 1行目 -->
+        <div class="lang-item">
+            <span class="name font-playfair">Fujimino Hikari Eye Clinic</span>
+            <span class="language">英語</span>
+        </div>
+        <div class="lang-item">
+            <span class="name font-tc">藤見野光眼科診所</span>
+            <span class="language">中国語（繁体字）</span>
+        </div>
+        <div class="lang-item">
+            <span class="name font-arabic">عيادة فوجيمينو هيكاري للعيون</span>
+            <span class="language">アラビア語</span>
+        </div>
+
+        <!-- 2行目 -->
+        <div class="lang-item">
+            <span class="name font-kr">후지미노 히카리 안과</span>
+            <span class="language">韓国語</span>
+        </div>
+        <div class="lang-item">
+            <span class="name font-playfair">Clinique Ophtalmologique Fujimino Hikari</span>
+            <span class="language">フランス語</span>
+        </div>
+        <div class="lang-item">
+            <span class="name font-thai">คลินิกตา ฟูจิมิโนะ ฮิคาริ</span>
+            <span class="language">タイ語</span>
+        </div>
+
+        <!-- 3行目（中央に日本語タイトル） -->
+        <div class="lang-item">
+            <span class="name font-hebrew">מרפאת עיניים פוג'ימינו היקארי</span>
+            <span class="language">ヘブライ語</span>
+        </div>
+        <div class="center-title">
+            <span class="name">ふじみ野ひかり眼科</span>
+        </div>
+        <div class="lang-item">
+            <span class="name font-playfair">Phòng khám Mắt Fujimino Hikari</span>
+            <span class="language">ベトナム語</span>
+        </div>
+
+        <!-- 4行目 -->
+        <div class="lang-item">
+            <span class="name font-devanagari">फुजिमिनो हिकारी आँखा क्लिनिक</span>
+            <span class="language">ネパール語</span>
+        </div>
+        <div class="lang-item">
+            <span class="name font-playfair">Clinica Oculistica Fujimino Hikari</span>
+            <span class="language">イタリア語</span>
+        </div>
+        <div class="lang-item">
+            <span class="name font-myanmar">ဖူဂျီမီနို ဟီကာရီ မျက်စိဆေးခန်း</span>
+            <span class="language">ミャンマー語</span>
+        </div>
+
+        <!-- 5行目 -->
+        <div class="lang-item">
+            <span class="name font-georgian">ფუჯიმინო ჰიკარი თვალის კლინიკა</span>
+            <span class="language">ジョージア語</span>
+        </div>
+        <div class="lang-item">
+            <span class="name font-bengali">ফুজিমিনো হিকারি চক্ষু ক্লিনিক</span>
+            <span class="language">ベンガル語</span>
+        </div>
+        <div class="lang-item">
+            <span class="name font-ethiopic">ፉጂሚኖ ሂካሪ የዓይን ክሊኒክ</span>
+            <span class="language">アムハラ語</span>
+        </div>
+
+        <!-- 6行目 -->
+        <div class="lang-item">
+            <span class="name font-playfair">Klinik Mata Fujimino Hikari</span>
+            <span class="language">インドネシア語</span>
+        </div>
+        <div class="lang-item">
+            <span class="name font-sinhala">ෆුජිමිනෝ හිකාරි අක්ෂි සායනය</span>
+            <span class="language">シンハラ語</span>
+        </div>
+        <div class="lang-item">
+            <span class="name font-playfair">Clínica Oftalmológica Fujimino Hikari</span>
+            <span class="language">ポルトガル語</span>
+        </div>
+    </div>
+</body>
+</html>
