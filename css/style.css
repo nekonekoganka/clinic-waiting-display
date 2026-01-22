@@ -893,3 +893,192 @@ td { padding: clamp(3px, 0.5vh, 8px); border: 1px solid var(--border-color); tex
     color: white;
     text-shadow: 2px 2px 6px rgba(0,0,0,0.3);
 }
+
+/* ========== 多言語グリッド画面（フラッシュ版） ========== */
+.multilang-grid-screen {
+    background-color: #000000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 全画面フラッシュ用オーバーレイ */
+.multilang-flash-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 215, 0, 1);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 1001;
+}
+
+.multilang-grid-screen.active .multilang-flash-overlay {
+    animation: multilang-screen-flash 1.5s ease-in-out 11s;
+}
+
+@keyframes multilang-screen-flash {
+    0% { opacity: 0; }
+    40% { opacity: 0.35; }
+    100% { opacity: 0; }
+}
+
+/* グリッドコンテナ */
+.multilang-grid-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 40px 80px;
+    width: 1750px;
+    padding: 0 40px;
+}
+
+/* 各言語アイテム */
+.multilang-item {
+    text-align: center;
+    padding: 15px 10px;
+    opacity: 0;
+}
+
+.multilang-grid-screen.active .multilang-item {
+    animation: multilang-fade-in 0.8s ease-out forwards;
+}
+
+/* 各言語が順番に出現するアニメーション */
+@keyframes multilang-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 各言語のディレイ（バラバラに出現・1秒〜10秒かけて） */
+.multilang-grid-screen.active .multilang-item:nth-child(1) { animation-delay: 1.0s; }
+.multilang-grid-screen.active .multilang-item:nth-child(2) { animation-delay: 3.0s; }
+.multilang-grid-screen.active .multilang-item:nth-child(3) { animation-delay: 2.0s; }
+.multilang-grid-screen.active .multilang-item:nth-child(4) { animation-delay: 4.0s; }
+.multilang-grid-screen.active .multilang-item:nth-child(5) { animation-delay: 1.5s; }
+.multilang-grid-screen.active .multilang-item:nth-child(6) { animation-delay: 5.0s; }
+.multilang-grid-screen.active .multilang-item:nth-child(7) { animation-delay: 2.5s; }
+.multilang-grid-screen.active .multilang-item:nth-child(9) { animation-delay: 3.5s; }
+.multilang-grid-screen.active .multilang-item:nth-child(10) { animation-delay: 5.5s; }
+.multilang-grid-screen.active .multilang-item:nth-child(11) { animation-delay: 4.5s; }
+.multilang-grid-screen.active .multilang-item:nth-child(12) { animation-delay: 7.5s; }
+.multilang-grid-screen.active .multilang-item:nth-child(13) { animation-delay: 6.0s; }
+.multilang-grid-screen.active .multilang-item:nth-child(14) { animation-delay: 8.5s; }
+.multilang-grid-screen.active .multilang-item:nth-child(15) { animation-delay: 7.0s; }
+.multilang-grid-screen.active .multilang-item:nth-child(16) { animation-delay: 9.5s; }
+.multilang-grid-screen.active .multilang-item:nth-child(17) { animation-delay: 8.0s; }
+.multilang-grid-screen.active .multilang-item:nth-child(18) { animation-delay: 10.0s; }
+
+.multilang-item .multilang-name {
+    font-size: 2rem;
+    display: block;
+    margin-bottom: 10px;
+    color: #FFFFFF;
+}
+
+.multilang-item .multilang-language {
+    font-size: 1.5rem;
+    color: #FFD700;
+}
+
+/* 中央の日本語タイトル */
+.multilang-center-title {
+    text-align: center;
+    padding: 15px 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+}
+
+.multilang-grid-screen.active .multilang-center-title {
+    animation: multilang-fade-in-glow 1s ease-out forwards;
+    animation-delay: 0s;
+}
+
+.multilang-center-title .multilang-center-name {
+    font-size: 3rem;
+    font-weight: bold;
+    display: block;
+    color: #FFD700;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+}
+
+.multilang-grid-screen.active .multilang-center-title .multilang-center-name {
+    animation: multilang-gentle-glow 3s ease-in-out infinite, multilang-super-glow 2s ease-in-out 11.3s;
+}
+
+@keyframes multilang-fade-in-glow {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes multilang-gentle-glow {
+    0%, 100% {
+        text-shadow:
+            0 0 10px rgba(255, 215, 0, 0.5),
+            0 0 20px rgba(255, 215, 0, 0.3),
+            0 0 30px rgba(255, 215, 0, 0.2);
+    }
+    50% {
+        text-shadow:
+            0 0 20px rgba(255, 215, 0, 0.8),
+            0 0 40px rgba(255, 215, 0, 0.6),
+            0 0 60px rgba(255, 215, 0, 0.4),
+            0 0 80px rgba(255, 215, 0, 0.2);
+    }
+}
+
+/* フラッシュ後の強発光アニメーション */
+@keyframes multilang-super-glow {
+    0% {
+        text-shadow:
+            0 0 10px rgba(255, 215, 0, 0.5),
+            0 0 20px rgba(255, 215, 0, 0.3),
+            0 0 30px rgba(255, 215, 0, 0.2);
+    }
+    40% {
+        text-shadow:
+            0 0 40px rgba(255, 215, 0, 1),
+            0 0 80px rgba(255, 215, 0, 1),
+            0 0 120px rgba(255, 215, 0, 0.9),
+            0 0 180px rgba(255, 215, 0, 0.7),
+            0 0 250px rgba(255, 215, 0, 0.5);
+    }
+    100% {
+        text-shadow:
+            0 0 10px rgba(255, 215, 0, 0.5),
+            0 0 20px rgba(255, 215, 0, 0.3),
+            0 0 30px rgba(255, 215, 0, 0.2);
+    }
+}
+
+/* 多言語フォント指定 */
+.font-playfair { font-family: 'Playfair Display', serif; }
+.font-tc { font-family: 'Noto Serif TC', serif; }
+.font-kr { font-family: 'Noto Serif KR', serif; }
+.font-arabic { font-family: 'Noto Naskh Arabic', serif; }
+.font-thai { font-family: 'Noto Serif Thai', serif; }
+.font-hebrew { font-family: 'Noto Serif Hebrew', serif; }
+.font-devanagari { font-family: 'Noto Serif Devanagari', serif; }
+.font-myanmar { font-family: 'Noto Serif Myanmar', serif; }
+.font-georgian { font-family: 'Noto Serif Georgian', serif; }
+.font-bengali { font-family: 'Noto Serif Bengali', serif; }
+.font-ethiopic { font-family: 'Noto Serif Ethiopic', serif; }
+.font-sinhala { font-family: 'Noto Serif Sinhala', serif; }

@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>花粉飛散情報（天気予報追加版）</title>
+    <!-- Google Fonts for multilingual display -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500&family=Noto+Serif+Bengali:wght@400;500&family=Noto+Serif+Devanagari:wght@400;500&family=Noto+Serif+Ethiopic:wght@400;500&family=Noto+Serif+Georgian:wght@400;500&family=Noto+Serif+Hebrew:wght@400;500&family=Noto+Serif+KR:wght@400;500&family=Noto+Serif+Myanmar:wght@400;500&family=Noto+Serif+Sinhala:wght@400;500&family=Noto+Serif+TC:wght@400;500&family=Noto+Serif+Thai:wght@400;500&family=Playfair+Display:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -123,6 +127,95 @@
             <div class="billiard-sparkle billiard-sparkle-small" id="billiard-sparkle3"></div>
             <div class="billiard-sparkle" id="billiard-sparkle4"></div>
             <div class="billiard-sparkle billiard-sparkle-small" id="billiard-sparkle5"></div>
+        </div>
+    </div>
+
+    <!-- 多言語グリッド画面（フラッシュ版） -->
+    <div class="fullscreen-overlay multilang-grid-screen" id="multilang-grid-screen">
+        <div class="multilang-flash-overlay" id="multilang-flash-overlay"></div>
+        <div class="multilang-grid-container">
+            <!-- 1行目 -->
+            <div class="multilang-item">
+                <span class="multilang-name font-playfair">Fujimino Hikari Eye Clinic</span>
+                <span class="multilang-language">英語</span>
+            </div>
+            <div class="multilang-item">
+                <span class="multilang-name font-tc">藤見野光眼科診所</span>
+                <span class="multilang-language">中国語（繁体字）</span>
+            </div>
+            <div class="multilang-item">
+                <span class="multilang-name font-arabic">عيادة فوجيمينو هيكاري للعيون</span>
+                <span class="multilang-language">アラビア語</span>
+            </div>
+
+            <!-- 2行目 -->
+            <div class="multilang-item">
+                <span class="multilang-name font-kr">후지미노 히카리 안과</span>
+                <span class="multilang-language">韓国語</span>
+            </div>
+            <div class="multilang-item">
+                <span class="multilang-name font-playfair">Clinique Ophtalmologique Fujimino Hikari</span>
+                <span class="multilang-language">フランス語</span>
+            </div>
+            <div class="multilang-item">
+                <span class="multilang-name font-thai">คลินิกตา ฟูจิมิโนะ ฮิคาริ</span>
+                <span class="multilang-language">タイ語</span>
+            </div>
+
+            <!-- 3行目（中央に日本語タイトル） -->
+            <div class="multilang-item">
+                <span class="multilang-name font-hebrew">מרפאת עיניים פוג'ימינו היקארי</span>
+                <span class="multilang-language">ヘブライ語</span>
+            </div>
+            <div class="multilang-center-title">
+                <span class="multilang-center-name">ふじみ野ひかり眼科</span>
+            </div>
+            <div class="multilang-item">
+                <span class="multilang-name font-playfair">Phòng khám Mắt Fujimino Hikari</span>
+                <span class="multilang-language">ベトナム語</span>
+            </div>
+
+            <!-- 4行目 -->
+            <div class="multilang-item">
+                <span class="multilang-name font-devanagari">फुजिमिनो हिकारी आँखा क्लिनिक</span>
+                <span class="multilang-language">ネパール語</span>
+            </div>
+            <div class="multilang-item">
+                <span class="multilang-name font-playfair">Clinica Oculistica Fujimino Hikari</span>
+                <span class="multilang-language">イタリア語</span>
+            </div>
+            <div class="multilang-item">
+                <span class="multilang-name font-myanmar">ဖူဂျီမီနို ဟီကာရီ မျက်စိဆေးခန်း</span>
+                <span class="multilang-language">ミャンマー語</span>
+            </div>
+
+            <!-- 5行目 -->
+            <div class="multilang-item">
+                <span class="multilang-name font-georgian">ფუჯიმინო ჰიკარი თვალის კლინიკა</span>
+                <span class="multilang-language">ジョージア語</span>
+            </div>
+            <div class="multilang-item">
+                <span class="multilang-name font-bengali">ফুজিমিনো হিকারি চক্ষু ক্লিনিক</span>
+                <span class="multilang-language">ベンガル語</span>
+            </div>
+            <div class="multilang-item">
+                <span class="multilang-name font-ethiopic">ፉጂሚኖ ሂካሪ የዓይን ክሊኒክ</span>
+                <span class="multilang-language">アムハラ語</span>
+            </div>
+
+            <!-- 6行目 -->
+            <div class="multilang-item">
+                <span class="multilang-name font-playfair">Klinik Mata Fujimino Hikari</span>
+                <span class="multilang-language">インドネシア語</span>
+            </div>
+            <div class="multilang-item">
+                <span class="multilang-name font-sinhala">ෆුජිමිනෝ හිකාරි අක්ෂි සායනය</span>
+                <span class="multilang-language">シンハラ語</span>
+            </div>
+            <div class="multilang-item">
+                <span class="multilang-name font-playfair">Clínica Oftalmológica Fujimino Hikari</span>
+                <span class="multilang-language">ポルトガル語</span>
+            </div>
         </div>
     </div>
 
