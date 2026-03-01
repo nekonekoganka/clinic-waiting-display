@@ -13,6 +13,7 @@ const CONFIG = {
         weather: 15000,       // 天気予報画面
         weatherError: 3000,   // 天気予報エラー時
         uv: 10000,            // 紫外線情報画面
+        sunExposure: 15000,   // 日光浴おすすめ画面
         logo: 15000,          // ロゴアニメーション（パーティクル）
         famicom: 15000,       // ファミコン風ロゴ
         slideshowDefault: 15000 // スライドショーのデフォルト表示時間（規則外ファイル用）
@@ -275,6 +276,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { id: 'clock-screen', duration: CONFIG.durations.clock },         // 時計表示
         { id: 'weather-screen', duration: CONFIG.durations.weather },     // 天気予報
         { id: 'uv-screen', duration: CONFIG.durations.uv },               // 紫外線情報
+        { id: 'sun-exposure-screen', duration: CONFIG.durations.sunExposure }, // 日光浴おすすめ
         { id: 'multilang-grid-screen', duration: CONFIG.durations.multilang }   // 多言語グリッド画面
     ];
 
@@ -598,6 +600,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 stopFamicomAnimation();
                 stopVideoCM();
                 updateUVScreen();
+            } else if (screens[index].id === 'sun-exposure-screen') {
+                // 日光浴おすすめ画面
+                stopParticleAnimation();
+                stopBilliardAnimation();
+                stopFamicomAnimation();
+                stopVideoCM();
+                updateSunExposureScreen();
             } else if (screens[index].id === 'multilang-grid-screen') {
                 // 多言語グリッド画面
                 stopParticleAnimation();
@@ -2046,6 +2055,115 @@ document.addEventListener('DOMContentLoaded', () => {
         uvAdviceText.textContent = levelInfo.advice;
 
         console.log(`UV情報: 月=${new Date().getMonth() + 1}, 天気コード=${cachedWeatherCode}, UV=${uvIndex}, レベル=${levelInfo.label}`);
+    }
+
+    // ========== 日光浴おすすめ画面 ==========
+
+    // 埼玉県（北緯35.8°）での月別ビタミンD生成に必要な日光浴時間（分）
+    // 条件: 正午前後、晴天、顔と手を露出（Fitzpatrick skin type III）
+    const SUN_EXPOSURE_BY_MONTH = {
+        1:  { clear: 50, cloudy: 120 },  // 冬至後、太陽高度低い
+        2:  { clear: 40, cloudy: 90 },
+        3:  { clear: 25, cloudy: 50 },
+        4:  { clear: 20, cloudy: 40 },
+        5:  { clear: 10, cloudy: 25 },
+        6:  { clear: 8,  cloudy: 20 },
+        7:  { clear: 5,  cloudy: 15 },   // 夏至付近、最も効率的
+        8:  { clear: 5,  cloudy: 15 },
+        9:  { clear: 10, cloudy: 25 },
+        10: { clear: 20, cloudy: 40 },
+        11: { clear: 35, cloudy: 80 },
+        12: { clear: 50, cloudy: 120 }   // 冬至付近、最も非効率
+    };
+
+    // 時間帯による補正倍率（正午基準）
+    function getSunExposureTimeMultiplier(hour) {
+        if (hour >= 10 && hour < 14) return 1.0;  // 正午前後: 最適
+        if (hour >= 8 && hour < 10) return 1.8;   // 午前: やや長め
+        if (hour >= 14 && hour < 16) return 1.5;  // 午後: やや長め
+        return null; // それ以外: 日光浴に不適な時間帯
+    }
+
+    // 雨・雪かどうかを判定
+    function isWeatherRainy(weatherCode) {
+        if (!weatherCode) return false;
+        const code = String(weatherCode);
+        return code.startsWith('3') || code.startsWith('4'); // 300番台=雨, 400番台=雪
+    }
+
+    // 推奨日光浴時間を計算
+    function calculateSunExposure() {
+        const now = new Date();
+        const month = now.getMonth() + 1;
+        const hour = now.getHours();
+        const data = SUN_EXPOSURE_BY_MONTH[month];
+        const isClear = isWeatherClear(cachedWeatherCode);
+        const isRainy = isWeatherRainy(cachedWeatherCode);
+
+        // 雨・雪の場合
+        if (isRainy) {
+            return { minutes: null, isRainy: true, isOutsideHours: false };
+        }
+
+        // 早朝・夜間の場合
+        const multiplier = getSunExposureTimeMultiplier(hour);
+        if (multiplier === null) {
+            const baseMinutes = isClear ? data.clear : data.cloudy;
+            return { minutes: baseMinutes, isRainy: false, isOutsideHours: true };
+        }
+
+        const baseMinutes = isClear ? data.clear : data.cloudy;
+        let adjustedMinutes = Math.round(baseMinutes * multiplier);
+
+        // 5分単位に丸める（見やすさ）
+        adjustedMinutes = Math.round(adjustedMinutes / 5) * 5;
+        if (adjustedMinutes < 5) adjustedMinutes = 5;
+        if (adjustedMinutes > 120) adjustedMinutes = 120;
+
+        return { minutes: adjustedMinutes, isRainy: false, isOutsideHours: false };
+    }
+
+    // 日光浴画面を更新
+    function updateSunExposureScreen() {
+        const timeEl = document.getElementById('sun-exposure-time');
+        const conditionEl = document.getElementById('sun-exposure-condition');
+        const tipsEl = document.getElementById('sun-exposure-tips');
+        const screen = document.getElementById('sun-exposure-screen');
+
+        const result = calculateSunExposure();
+        const month = new Date().getMonth() + 1;
+
+        // 背景クラスのリセット
+        screen.classList.remove('sun-rainy', 'sun-winter', 'sun-summer');
+
+        if (result.isRainy) {
+            // 雨・雪の日
+            screen.classList.add('sun-rainy');
+            timeEl.textContent = '☂️';
+            conditionEl.textContent = '今日は室内で過ごしましょう';
+            tipsEl.innerHTML = '<span class="sun-tip-icon">🐟</span><span class="sun-tip-text">ビタミンDは鮭・しらす・きのこ類からも摂れます</span>';
+        } else if (result.isOutsideHours) {
+            // 早朝・夜間（日中の推奨値を表示）
+            timeEl.textContent = '約' + result.minutes + '分';
+            conditionEl.textContent = '日中の外出時に太陽を浴びましょう';
+            tipsEl.innerHTML = '<span class="sun-tip-icon">🕐</span><span class="sun-tip-text">10時〜14時がおすすめの時間帯です</span>';
+        } else {
+            // 通常表示
+            timeEl.textContent = '約' + result.minutes + '分';
+            conditionEl.textContent = '顔と手に日差しを浴びるのが目安です';
+            // 季節ごとのアドバイス
+            if (month >= 11 || month <= 2) {
+                screen.classList.add('sun-winter');
+                tipsEl.innerHTML = '<span class="sun-tip-icon">🧣</span><span class="sun-tip-text">冬は日差しが弱いので、意識して外に出ましょう</span>';
+            } else if (month >= 6 && month <= 8) {
+                screen.classList.add('sun-summer');
+                tipsEl.innerHTML = '<span class="sun-tip-icon">🧴</span><span class="sun-tip-text">短時間でOK！長時間の場合は日焼け対策も忘れずに</span>';
+            } else {
+                tipsEl.innerHTML = '<span class="sun-tip-icon">🚶</span><span class="sun-tip-text">お散歩やお買い物のついでに日光浴しましょう</span>';
+            }
+        }
+
+        console.log('日光浴情報: 月=' + month + ', 天気コード=' + cachedWeatherCode + ', 推奨=' + (result.minutes ? result.minutes + '分' : '室内') + ', 雨=' + result.isRainy);
     }
 
     // 初期化
