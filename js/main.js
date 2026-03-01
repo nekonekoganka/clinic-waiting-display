@@ -14,7 +14,7 @@ const CONFIG = {
         weatherError: 3000,   // 天気予報エラー時
         uv: 10000,            // 紫外線情報画面
         sunExposure: 15000,   // 日光浴おすすめ画面
-        logo: 15000,          // ロゴアニメーション（パーティクル）
+        logo: 20000,          // ロゴアニメーション（パーティクル）
         famicom: 15000,       // ファミコン風ロゴ
         slideshowDefault: 15000 // スライドショーのデフォルト表示時間（規則外ファイル用）
     },
@@ -1090,8 +1090,65 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
     
-    const LOOP_DURATION = 15000;
-    
+    const LOOP_DURATION = 20000;
+
+    // 日時テキストのピクセル座標を動的生成
+    function generateDateTimePixels(particleCount) {
+        const now = new Date();
+        const month = now.getMonth() + 1;
+        const day = now.getDate();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const dateText = `${month}月${day}日`;
+        const timeText = `${hours}:${minutes}`;
+
+        const offCanvas = document.createElement('canvas');
+        offCanvas.width = particleCanvas.width;
+        offCanvas.height = particleCanvas.height;
+        const offCtx = offCanvas.getContext('2d');
+
+        // 日付と時刻を2行で描画
+        offCtx.fillStyle = 'white';
+        offCtx.textAlign = 'center';
+        offCtx.textBaseline = 'middle';
+
+        // 1行目: 日付
+        offCtx.font = 'bold 120px "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif';
+        offCtx.fillText(dateText, offCanvas.width / 2, offCanvas.height / 2 - 80);
+
+        // 2行目: 時刻
+        offCtx.font = 'bold 140px "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif';
+        offCtx.fillText(timeText, offCanvas.width / 2, offCanvas.height / 2 + 100);
+
+        // ピクセルデータを読み取り、座標を抽出
+        const imageData = offCtx.getImageData(0, 0, offCanvas.width, offCanvas.height);
+        const allPositions = [];
+        const step = 4; // サンプリング間隔
+        for (let y = 0; y < offCanvas.height; y += step) {
+            for (let x = 0; x < offCanvas.width; x += step) {
+                const idx = (y * offCanvas.width + x) * 4;
+                if (imageData.data[idx + 3] > 128) {
+                    allPositions.push({ x, y });
+                }
+            }
+        }
+
+        // パーティクル数に合わせて調整
+        if (allPositions.length <= particleCount) {
+            return allPositions;
+        }
+        // 均等にサンプリング
+        const result = [];
+        const ratio = allPositions.length / particleCount;
+        for (let i = 0; i < particleCount; i++) {
+            result.push(allPositions[Math.floor(i * ratio)]);
+        }
+        return result;
+    }
+
+    // 日時テキスト用の座標（アニメーション開始時に計算）
+    let dateTimePositions = [];
+
     // グラデーションをキャッシュ
     const gradientCache = {};
     function getGradient(size, alpha) {
@@ -1108,74 +1165,130 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // パーティクルクラス
+    // フェーズ定義:
+    //   0-2秒:    日時形成（出現して日時テキストに集合）
+    //   2-7秒:    日時維持（微揺れ）
+    //   7-10秒:   遷移（日時→クリニック名に再集合）
+    //   10-16秒:  クリニック名維持（微揺れ）
+    //   16-20秒:  散開（フェードアウト）
     class Particle {
         constructor(targetX, targetY, index) {
             this.index = index;
             this.targetX = targetX;
             this.targetY = targetY;
+            this.dateTimeX = null;
+            this.dateTimeY = null;
+            this.hasDateTimeTarget = false;
             this.reset();
         }
-        
+
         reset() {
             this.startX = Math.random() * particleCanvas.width;
             this.startY = Math.random() * particleCanvas.height;
             this.x = this.startX;
             this.y = this.startY;
-            
+
             this.vx = (Math.random() - 0.5) * 0.6;
             this.vy = (Math.random() - 0.5) * 0.6;
             this.floatOffset = Math.random() * Math.PI * 2;
-            
+
             this.size = Math.random() * 1.5 + 2;
             this.dynamicSize = this.size;
             this.alpha = 0;
             this.brightness = 0;
-            
+
             this.flickerSpeed = Math.random() * 0.003 + 0.002;
             this.flickerOffset = Math.random() * Math.PI * 2;
-            
-            this.appearDelay = this.index * 3;
-            this.gatherDelay = Math.random() * 1200;
+
+            this.appearDelay = this.index * 2;
+            this.gatherDelay = Math.random() * 800;
+            this.transitionDelay = Math.random() * 800;
             this.angle = Math.atan2(this.startY - this.targetY, this.startX - this.targetX);
         }
-        
+
+        setDateTimeTarget(x, y) {
+            this.dateTimeX = x;
+            this.dateTimeY = y;
+            this.hasDateTimeTarget = true;
+        }
+
+        clearDateTimeTarget() {
+            this.dateTimeX = null;
+            this.dateTimeY = null;
+            this.hasDateTimeTarget = false;
+        }
+
         update(elapsed) {
             this.brightness = 0.8 + Math.sin(elapsed * this.flickerSpeed + this.flickerOffset) * 0.2;
-            
-            if (elapsed < 3000) {
+
+            // フェーズ1: 日時形成 (0-2秒)
+            if (elapsed < 2000) {
                 if (elapsed > this.appearDelay) {
-                    this.alpha = Math.min(1, (elapsed - this.appearDelay) / 800);
+                    this.alpha = Math.min(1, (elapsed - this.appearDelay) / 600);
                 }
-                this.x += this.vx + Math.sin(elapsed * 0.001 + this.floatOffset) * 0.3;
-                this.y += this.vy + Math.cos(elapsed * 0.001 + this.floatOffset) * 0.3;
-                
-                if (this.x < 0 || this.x > particleCanvas.width) this.vx *= -1;
-                if (this.y < 0 || this.y > particleCanvas.height) this.vy *= -1;
-                
-            } else if (elapsed < 8000) {
-                const t = elapsed - 3000;
-                if (t >= this.gatherDelay) {
-                    const p = Math.min(1, (t - this.gatherDelay) / (5000 - this.gatherDelay));
+                if (this.hasDateTimeTarget) {
+                    const p = Math.min(1, elapsed / 2000);
+                    const eased = 1 - Math.pow(1 - p, 3);
+                    this.x += (this.dateTimeX - this.x) * eased * 0.15;
+                    this.y += (this.dateTimeY - this.y) * eased * 0.15;
+                    this.dynamicSize = this.size * (1 + eased * 2);
+                } else {
+                    this.x += this.vx + Math.sin(elapsed * 0.001 + this.floatOffset) * 0.3;
+                    this.y += this.vy + Math.cos(elapsed * 0.001 + this.floatOffset) * 0.3;
+                    if (this.x < 0 || this.x > particleCanvas.width) this.vx *= -1;
+                    if (this.y < 0 || this.y > particleCanvas.height) this.vy *= -1;
+                    this.dynamicSize = this.size;
+                }
+
+            // フェーズ2: 日時維持 (2-7秒)
+            } else if (elapsed < 7000) {
+                this.alpha = 1;
+                if (this.hasDateTimeTarget) {
+                    const wobble = Math.sin(elapsed * 0.002 + this.floatOffset) * 0.8;
+                    this.x = this.dateTimeX + wobble;
+                    this.y = this.dateTimeY + Math.cos(elapsed * 0.0025 + this.floatOffset) * 0.8;
+                    this.dynamicSize = this.size * 3;
+                } else {
+                    this.x += this.vx * 0.3 + Math.sin(elapsed * 0.001 + this.floatOffset) * 0.2;
+                    this.y += this.vy * 0.3 + Math.cos(elapsed * 0.001 + this.floatOffset) * 0.2;
+                    if (this.x < 0 || this.x > particleCanvas.width) this.vx *= -1;
+                    if (this.y < 0 || this.y > particleCanvas.height) this.vy *= -1;
+                    this.dynamicSize = this.size;
+                }
+
+            // フェーズ3: 遷移 日時→クリニック名 (7-10秒)
+            } else if (elapsed < 10000) {
+                const t = elapsed - 7000;
+                if (t >= this.transitionDelay) {
+                    const p = Math.min(1, (t - this.transitionDelay) / (3000 - this.transitionDelay));
                     const eased = 1 - Math.pow(1 - p, 3);
                     this.x += (this.targetX - this.x) * eased * 0.12;
                     this.y += (this.targetY - this.y) * eased * 0.12;
                     this.dynamicSize = this.size * (1 + eased * 2);
                 } else {
-                    this.x += this.vx * 0.5;
-                    this.y += this.vy * 0.5;
-                    this.dynamicSize = this.size;
+                    if (this.hasDateTimeTarget) {
+                        const wobble = Math.sin(elapsed * 0.002 + this.floatOffset) * 0.8;
+                        this.x = this.dateTimeX + wobble;
+                        this.y = this.dateTimeY + Math.cos(elapsed * 0.0025 + this.floatOffset) * 0.8;
+                    } else {
+                        this.x += this.vx * 0.3;
+                        this.y += this.vy * 0.3;
+                    }
+                    this.dynamicSize = this.size * 2;
                 }
                 this.alpha = 1;
-                
-            } else if (elapsed < 12000) {
+
+            // フェーズ4: クリニック名維持 (10-16秒)
+            } else if (elapsed < 16000) {
                 const wobble = Math.sin(elapsed * 0.002 + this.floatOffset) * 0.8;
                 this.x = this.targetX + wobble;
                 this.y = this.targetY + Math.cos(elapsed * 0.0025 + this.floatOffset) * 0.8;
                 this.dynamicSize = this.size * 3;
                 this.alpha = 1;
-                
+
+            // フェーズ5: 散開 (16-20秒)
             } else {
-                const p = (elapsed - 12000) / 3000;
+                const p = (elapsed - 16000) / 4000;
                 const eased = p * p;
                 const distance = 500 * eased;
                 this.x = this.targetX + Math.cos(this.angle) * distance;
@@ -1216,15 +1329,22 @@ document.addEventListener('DOMContentLoaded', () => {
     function resetParticleAnimation() {
         particleStartTime = Date.now();
         particles.forEach(p => p.reset());
+
+        // 日時テキストのピクセル座標を生成し、パーティクルに割り当て
+        dateTimePositions = generateDateTimePixels(particles.length);
+        particles.forEach(p => p.clearDateTimeTarget());
+        for (let i = 0; i < dateTimePositions.length && i < particles.length; i++) {
+            particles[i].setDateTimeTarget(dateTimePositions[i].x, dateTimePositions[i].y);
+        }
     }
-    
+
     function startParticleAnimation() {
         if (isParticleAnimating) return; // 既に実行中なら何もしない
         isParticleAnimating = true;
         resetParticleAnimation();
         animateParticles();
     }
-    
+
     function stopParticleAnimation() {
         if (particleAnimationId) {
             cancelAnimationFrame(particleAnimationId);
@@ -1232,25 +1352,32 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         isParticleAnimating = false;
     }
-    
+
     function animateParticles() {
         if (!isParticleAnimating) return; // 停止フラグが立っていたら終了
-        
+
         if (!particleStartTime) particleStartTime = Date.now();
-        
+
         const now = Date.now();
-        const elapsed = (now - particleStartTime) % LOOP_DURATION;
-        
+        const elapsed = now - particleStartTime;
+
+        // アニメーション終了（ループせず1回きり）
+        if (elapsed >= LOOP_DURATION) {
+            particleCtx.fillStyle = '#000000';
+            particleCtx.fillRect(0, 0, particleCanvas.width, particleCanvas.height);
+            return;
+        }
+
         // 背景クリア
         particleCtx.fillStyle = '#000000';
         particleCtx.fillRect(0, 0, particleCanvas.width, particleCanvas.height);
-        
+
         // パーティクルを更新・描画
         particles.forEach(p => {
             p.update(elapsed);
             p.draw(particleCtx);
         });
-        
+
         particleAnimationId = requestAnimationFrame(animateParticles);
     }
 
