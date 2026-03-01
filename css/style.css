@@ -894,6 +894,100 @@ td { padding: clamp(3px, 0.5vh, 8px); border: 1px solid var(--border-color); tex
     text-shadow: 2px 2px 6px rgba(0,0,0,0.3);
 }
 
+/* ========== 日光浴おすすめ画面 ========== */
+.sun-exposure-screen {
+    background: linear-gradient(135deg, #ff9f43 0%, #f0932b 50%, #e17055 100%);
+}
+.sun-exposure-screen.sun-rainy {
+    background: linear-gradient(135deg, #636e72 0%, #74b9ff 50%, #a29bfe 100%);
+}
+.sun-exposure-screen.sun-winter {
+    background: linear-gradient(135deg, #e17055 0%, #d63031 50%, #e84393 100%);
+}
+.sun-exposure-screen.sun-summer {
+    background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 50%, #f39c12 100%);
+}
+.sun-exposure-screen.active {
+    display: flex;
+}
+.sun-exposure-content {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(20px, 3vh, 40px) clamp(40px, 5vw, 80px);
+    gap: clamp(15px, 2vh, 30px);
+}
+.sun-exposure-header {
+    text-align: center;
+}
+.sun-exposure-title {
+    font-size: clamp(50px, 8vh, 80px);
+    font-weight: bold;
+    color: white;
+    text-shadow: 3px 3px 10px rgba(0,0,0,0.3);
+}
+.sun-exposure-main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.sun-exposure-time {
+    font-size: clamp(140px, 22vh, 220px);
+    font-weight: bold;
+    color: white;
+    line-height: 1.1;
+    text-shadow: 4px 4px 15px rgba(0,0,0,0.3);
+}
+.sun-exposure-condition {
+    font-size: clamp(36px, 6vh, 60px);
+    font-weight: bold;
+    color: rgba(255, 255, 255, 0.95);
+    text-shadow: 2px 2px 8px rgba(0,0,0,0.3);
+    margin-top: clamp(5px, 1vh, 15px);
+}
+.sun-exposure-tips {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(15px, 2vw, 30px);
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(10px);
+    padding: clamp(20px, 3vh, 40px) clamp(40px, 5vw, 80px);
+    border-radius: 24px;
+    margin-top: clamp(10px, 1.5vh, 20px);
+}
+.sun-tip-icon {
+    font-size: clamp(50px, 8vh, 80px);
+}
+.sun-tip-text {
+    font-size: clamp(32px, 5vh, 52px);
+    font-weight: bold;
+    color: white;
+    text-shadow: 2px 2px 8px rgba(0,0,0,0.3);
+}
+.sun-exposure-footer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(10px, 1.5vw, 20px);
+    background: rgba(255, 255, 255, 0.2);
+    padding: clamp(15px, 2.5vh, 30px) clamp(30px, 4vw, 60px);
+    border-radius: 16px;
+    margin-top: auto;
+}
+.sun-exposure-footer-icon {
+    font-size: clamp(35px, 5vh, 55px);
+}
+.sun-exposure-footer-text {
+    font-size: clamp(28px, 4.5vh, 45px);
+    font-weight: bold;
+    color: white;
+    text-shadow: 2px 2px 6px rgba(0,0,0,0.3);
+}
+
 /* ========== 多言語グリッド画面（フラッシュ版） ========== */
 .multilang-grid-screen {
     background-color: #000000;
