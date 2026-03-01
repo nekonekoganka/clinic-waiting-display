@@ -14,7 +14,7 @@ const CONFIG = {
         weatherError: 3000,   // 天気予報エラー時
         uv: 10000,            // 紫外線情報画面
         sunExposure: 15000,   // 日光浴おすすめ画面
-        logo: 20000,          // ロゴアニメーション（パーティクル）
+        logo: 25000,          // ロゴアニメーション（パーティクル）
         famicom: 15000,       // ファミコン風ロゴ
         slideshowDefault: 15000 // スライドショーのデフォルト表示時間（規則外ファイル用）
     },
@@ -1090,7 +1090,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
     
-    const LOOP_DURATION = 20000;
+    const LOOP_DURATION = 25000;
 
     // 日時テキストのピクセル座標を動的生成
     function generateDateTimePixels(particleCount) {
@@ -1166,11 +1166,11 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // パーティクルクラス
     // フェーズ定義:
-    //   0-2秒:    日時形成（出現して日時テキストに集合）
-    //   2-7秒:    日時維持（微揺れ）
-    //   7-10秒:   遷移（日時→クリニック名に再集合）
-    //   10-16秒:  クリニック名維持（微揺れ）
-    //   16-20秒:  散開（フェードアウト）
+    //   0-3秒:    日時形成（出現して日時テキストに集合）
+    //   3-8秒:    日時維持（微揺れ）
+    //   8-13秒:   遷移（日時→クリニック名に再集合）
+    //   13-21秒:  クリニック名維持（微揺れ）
+    //   21-25秒:  散開（フェードアウト）
     class Particle {
         constructor(targetX, targetY, index) {
             this.index = index;
@@ -1221,13 +1221,13 @@ document.addEventListener('DOMContentLoaded', () => {
         update(elapsed) {
             this.brightness = 0.8 + Math.sin(elapsed * this.flickerSpeed + this.flickerOffset) * 0.2;
 
-            // フェーズ1: 日時形成 (0-2秒)
-            if (elapsed < 2000) {
+            // フェーズ1: 日時形成 (0-3秒)
+            if (elapsed < 3000) {
                 if (elapsed > this.appearDelay) {
-                    this.alpha = Math.min(1, (elapsed - this.appearDelay) / 600);
+                    this.alpha = Math.min(1, (elapsed - this.appearDelay) / 800);
                 }
                 if (this.hasDateTimeTarget) {
-                    const p = Math.min(1, elapsed / 2000);
+                    const p = Math.min(1, elapsed / 3000);
                     const eased = 1 - Math.pow(1 - p, 3);
                     this.x += (this.dateTimeX - this.x) * eased * 0.15;
                     this.y += (this.dateTimeY - this.y) * eased * 0.15;
@@ -1240,8 +1240,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     this.dynamicSize = this.size;
                 }
 
-            // フェーズ2: 日時維持 (2-7秒)
-            } else if (elapsed < 7000) {
+            // フェーズ2: 日時維持 (3-8秒)
+            } else if (elapsed < 8000) {
                 this.alpha = 1;
                 if (this.hasDateTimeTarget) {
                     const wobble = Math.sin(elapsed * 0.002 + this.floatOffset) * 0.8;
@@ -1256,11 +1256,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     this.dynamicSize = this.size;
                 }
 
-            // フェーズ3: 遷移 日時→クリニック名 (7-10秒)
-            } else if (elapsed < 10000) {
-                const t = elapsed - 7000;
+            // フェーズ3: 遷移 日時→クリニック名 (8-13秒)
+            } else if (elapsed < 13000) {
+                const t = elapsed - 8000;
                 if (t >= this.transitionDelay) {
-                    const p = Math.min(1, (t - this.transitionDelay) / (3000 - this.transitionDelay));
+                    const p = Math.min(1, (t - this.transitionDelay) / (5000 - this.transitionDelay));
                     const eased = 1 - Math.pow(1 - p, 3);
                     this.x += (this.targetX - this.x) * eased * 0.12;
                     this.y += (this.targetY - this.y) * eased * 0.12;
@@ -1278,17 +1278,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 this.alpha = 1;
 
-            // フェーズ4: クリニック名維持 (10-16秒)
-            } else if (elapsed < 16000) {
+            // フェーズ4: クリニック名維持 (13-21秒)
+            } else if (elapsed < 21000) {
                 const wobble = Math.sin(elapsed * 0.002 + this.floatOffset) * 0.8;
                 this.x = this.targetX + wobble;
                 this.y = this.targetY + Math.cos(elapsed * 0.0025 + this.floatOffset) * 0.8;
                 this.dynamicSize = this.size * 3;
                 this.alpha = 1;
 
-            // フェーズ5: 散開 (16-20秒)
+            // フェーズ5: 散開 (21-25秒)
             } else {
-                const p = (elapsed - 16000) / 4000;
+                const p = (elapsed - 21000) / 4000;
                 const eased = p * p;
                 const distance = 500 * eased;
                 this.x = this.targetX + Math.cos(this.angle) * distance;
