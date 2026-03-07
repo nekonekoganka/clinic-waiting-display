@@ -2176,9 +2176,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // UVレベルの定義（シンプルな1行アドバイス）
     const UV_LEVELS = [
         { max: 2, level: 'low', label: '弱い', color: '#4cd964', advice: '特別な対策は不要です' },
-        { max: 5, level: 'moderate', label: '中程度', color: '#ffcc00', advice: '長時間の外出時はサングラス推奨' },
-        { max: 7, level: 'high', label: '強い', color: '#ff9500', advice: 'サングラス・帽子で眼を保護しましょう' },
-        { max: 10, level: 'very-high', label: '非常に強い', color: '#ff3b30', advice: 'UV400サングラス必須！外出を控えて' },
+        { max: 5, level: 'moderate', label: '中程度', color: '#ffcc00', advice: '日差しが気になる時間帯は眼の保護を' },
+        { max: 7, level: 'high', label: '強い', color: '#ff9500', advice: 'サングラスや帽子で眼を保護しましょう' },
+        { max: 10, level: 'very-high', label: '非常に強い', color: '#ff3b30', advice: 'サングラス必須！外出を控えめに' },
         { max: Infinity, level: 'extreme', label: '極端に強い', color: '#af52de', advice: '外出を最小限に！眼への影響大' }
     ];
 
