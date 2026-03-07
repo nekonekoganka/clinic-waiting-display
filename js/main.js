@@ -490,6 +490,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // 画面リストを構築: 基本画面 + コンテンツ(スライド+CM) + 後半画面
         screens = [...baseScreens, ...contentScreens, ...finalEndScreens];
         console.log('画面リスト構築完了:', screens.length, '画面');
+
+        // 動画CMを事前バッファリング
+        preloadVideoCMs();
     }
 
     function showScreen(index) {
@@ -655,15 +658,22 @@ document.addEventListener('DOMContentLoaded', () => {
             }, duration - fadeOutDelay);
         }
 
+        // 次の画面がスライドショーなら画像を先読み
+        const nextIndex = (currentScreen + 1) % screens.length;
+        if (screens[nextIndex] && screens[nextIndex].id === 'slideshow-screen' && screens[nextIndex].slideshowImage) {
+            const preloadImg = new Image();
+            preloadImg.src = screens[nextIndex].slideshowImage;
+        }
+
         rotationTimeoutId = setTimeout(() => {
             currentScreen = (currentScreen + 1) % screens.length;
-            
+
             // ロゴアニメーション(最後の画面)が終わったら、ページをリロード
             if (currentScreen === 0) {
                 location.reload();
                 return; // リロード後は処理を続けない
             }
-            
+
             rotateScreens();
         }, duration);
     }
@@ -1662,6 +1672,34 @@ document.addEventListener('DOMContentLoaded', () => {
     let videoCMMetadataHandler = null;
     let videoCMEndedHandler = null;
 
+    // プリロードキャッシュ: src → { ready: boolean, duration: number }
+    const videoPreloadCache = new Map();
+
+    // 画面リスト構築後に呼ばれる: 動画CMソースを事前バッファリング
+    function preloadVideoCMs() {
+        const videoSources = new Set();
+        screens.forEach(s => {
+            if (s.id === 'video-cm-screen' && s.videoSrc) {
+                videoSources.add(s.videoSrc);
+            }
+        });
+        videoSources.forEach(src => {
+            if (videoPreloadCache.has(src)) return;
+            const cache = { ready: false, duration: 0 };
+            videoPreloadCache.set(src, cache);
+            const preloader = document.createElement('video');
+            preloader.preload = 'auto';
+            preloader.muted = true;
+            preloader.src = src;
+            preloader.addEventListener('canplaythrough', () => {
+                cache.ready = true;
+                cache.duration = preloader.duration;
+                console.log(`動画プリロード完了: ${src} (${preloader.duration.toFixed(1)}秒)`);
+            }, { once: true });
+            preloader.load();
+        });
+    }
+
     function startVideoCM(src) {
         if (!videoCMPlayer || !src) return;
 
@@ -1676,14 +1714,20 @@ document.addEventListener('DOMContentLoaded', () => {
         videoCMPlayer.src = src;
         videoCMPlayer.load();
 
-        // メタデータ読み込み後に動画の長さを確認
-        videoCMMetadataHandler = () => {
-            const duration = videoCMPlayer.duration;
-            // 15秒未満なら2周、15秒以上なら1周
-            videoCMTargetLoops = duration < 15 ? 2 : 1;
-            console.log(`動画CM: ${duration.toFixed(1)}秒 → ${videoCMTargetLoops}周再生`);
-        };
-        videoCMPlayer.addEventListener('loadedmetadata', videoCMMetadataHandler);
+        // プリロード済みの場合はメタデータからループ数を即決定
+        const cached = videoPreloadCache.get(src);
+        if (cached && cached.ready && cached.duration > 0) {
+            videoCMTargetLoops = cached.duration < 15 ? 2 : 1;
+            console.log(`動画CM(キャッシュ): ${cached.duration.toFixed(1)}秒 → ${videoCMTargetLoops}周再生`);
+        } else {
+            // メタデータ読み込み後に動画の長さを確認（フォールバック）
+            videoCMMetadataHandler = () => {
+                const duration = videoCMPlayer.duration;
+                videoCMTargetLoops = duration < 15 ? 2 : 1;
+                console.log(`動画CM: ${duration.toFixed(1)}秒 → ${videoCMTargetLoops}周再生`);
+            };
+            videoCMPlayer.addEventListener('loadedmetadata', videoCMMetadataHandler);
+        }
 
         // 動画終了時の処理
         videoCMEndedHandler = () => {
@@ -1697,14 +1741,33 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         videoCMPlayer.addEventListener('ended', videoCMEndedHandler);
 
-        // 再生開始
-        videoCMPlayer.play().then(() => {
-            isVideoCMPlaying = true;
-            console.log('動画CM再生開始:', src);
-        }).catch(error => {
-            console.log('動画CM再生エラー:', error);
-            isVideoCMPlaying = false;
-        });
+        // canplaythroughを待ってから再生開始（カクつき防止）
+        const tryPlay = () => {
+            videoCMPlayer.play().then(() => {
+                isVideoCMPlaying = true;
+                console.log('動画CM再生開始:', src);
+            }).catch(error => {
+                console.log('動画CM再生エラー:', error);
+                isVideoCMPlaying = false;
+            });
+        };
+
+        if (videoCMPlayer.readyState >= 4) {
+            // 既にバッファ済み（プリロード成功時）
+            tryPlay();
+        } else {
+            // バッファ完了を待ってから再生（最大3秒でタイムアウト）
+            const canPlayHandler = () => {
+                clearTimeout(fallbackTimer);
+                tryPlay();
+            };
+            videoCMPlayer.addEventListener('canplaythrough', canPlayHandler, { once: true });
+            const fallbackTimer = setTimeout(() => {
+                videoCMPlayer.removeEventListener('canplaythrough', canPlayHandler);
+                console.log('動画CM: バッファ待ちタイムアウト、強制再生開始');
+                tryPlay();
+            }, 3000);
+        }
     }
 
     // イベントリスナーのクリーンアップ関数
