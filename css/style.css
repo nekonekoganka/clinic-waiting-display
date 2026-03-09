@@ -1008,7 +1008,6 @@ td { padding: clamp(3px, 0.5vh, 8px); border: 1px solid var(--border-color); tex
     background: rgba(255, 255, 255, 0.2);
     padding: clamp(15px, 2.5vh, 30px) clamp(30px, 4vw, 60px);
     border-radius: 16px;
-    margin-top: auto;
 }
 .sun-exposure-footer-icon {
     font-size: clamp(35px, 5vh, 55px);

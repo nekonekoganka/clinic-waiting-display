@@ -1123,17 +1123,17 @@ document.addEventListener('DOMContentLoaded', () => {
         offCtx.textBaseline = 'middle';
 
         // 1行目: 日付
-        offCtx.font = 'bold 120px "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif';
-        offCtx.fillText(dateText, offCanvas.width / 2, offCanvas.height / 2 - 80);
+        offCtx.font = 'bold 200px "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif';
+        offCtx.fillText(dateText, offCanvas.width / 2, offCanvas.height / 2 - 140);
 
         // 2行目: 時刻
-        offCtx.font = 'bold 140px "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif';
-        offCtx.fillText(timeText, offCanvas.width / 2, offCanvas.height / 2 + 100);
+        offCtx.font = 'bold 240px "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif';
+        offCtx.fillText(timeText, offCanvas.width / 2, offCanvas.height / 2 + 140);
 
         // ピクセルデータを読み取り、座標を抽出
         const imageData = offCtx.getImageData(0, 0, offCanvas.width, offCanvas.height);
         const allPositions = [];
-        const step = 4; // サンプリング間隔
+        const step = 8; // サンプリング間隔
         for (let y = 0; y < offCanvas.height; y += step) {
             for (let x = 0; x < offCanvas.width; x += step) {
                 const idx = (y * offCanvas.width + x) * 4;
