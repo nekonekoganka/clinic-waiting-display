@@ -2024,15 +2024,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 // 気温データをローカルストレージに保存（明日以降のデータを保持）
                 saveTempsToStorage(tempByDate);
 
-                // カードを生成（データがある日数分）
+                // カードを生成（時間帯に応じて2日分表示）
                 let cardsHTML = '';
                 // 明後日のデータがあるか確認（天気情報が存在するか）
                 let displayDays = Math.min(3, timeDefines.length);
                 if (displayDays === 3 && (!weathers[2] || weathers[2] === '')) {
                     displayDays = 2; // 明後日のデータがなければ2日分のみ表示
                 }
-                
-                for (let i = 0; i < displayDays; i++) {
+
+                // 17時以降は明日・明後日、17時前は今日・明日を表示
+                const displayHour = new Date().getHours();
+                const startIndex = (displayHour >= 17 && displayDays >= 3) ? 1 : 0;
+                const endIndex = Math.min(startIndex + 2, displayDays);
+
+                for (let i = startIndex; i < endIndex; i++) {
                     const dayLabel = getDayLabel(timeDefines[i], i);
                     const weather = weathers[i] ? weathers[i].replace(/　/g, ' ') : '---';
                     const weatherCode = weatherCodes[i];
