@@ -98,16 +98,14 @@ td { padding: clamp(3px, 0.5vh, 8px); border: 1px solid var(--border-color); tex
 /* ========== フルスクリーンオーバーレイ ========== */
 .fullscreen-overlay {
     position: fixed;
-    top: 2vh;
-    left: 2vw;
-    width: calc(100% - 4vw);
-    height: calc(100% - 4vh);
-    border-radius: 16px;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     z-index: 1000;
     display: flex;
     align-items: center;
     justify-content: center;
-    overflow: hidden;
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.8s ease, visibility 0.8s ease;
@@ -503,7 +501,7 @@ td { padding: clamp(3px, 0.5vh, 8px); border: 1px solid var(--border-color); tex
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: clamp(20px, 3vh, 40px);
+    padding: clamp(20px, 3vh, 40px) clamp(30px, 3vw, 50px);
     box-sizing: border-box;
     color: white;
 }
@@ -783,8 +781,9 @@ td { padding: clamp(3px, 0.5vh, 8px); border: 1px solid var(--border-color); tex
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: clamp(30px, 4vh, 50px) clamp(60px, 7vw, 120px);
-    gap: clamp(12px, 1.8vh, 24px);
+    padding: clamp(20px, 3vh, 40px) clamp(60px, 7vw, 120px);
+    gap: clamp(10px, 1.5vh, 20px);
+    overflow: hidden;
 }
 .uv-header {
     text-align: center;
