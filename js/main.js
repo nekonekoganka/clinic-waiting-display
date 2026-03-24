@@ -1079,10 +1079,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const particleCanvas = document.getElementById('particleCanvas');
     const particleCtx = particleCanvas.getContext('2d');
     
-    particleCanvas.width = 1200;
-    particleCanvas.height = 1200;
-    
-    const scale = 1200 / 1024;
+    particleCanvas.width = 960;
+    particleCanvas.height = 960;
+
+    const scale = 960 / 1024;
     const blockSize = 9 * scale;
     
     // 文字座標を取得
@@ -1123,12 +1123,12 @@ document.addEventListener('DOMContentLoaded', () => {
         offCtx.textBaseline = 'middle';
 
         // 1行目: 日付
-        offCtx.font = 'bold 280px "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif';
-        offCtx.fillText(dateText, offCanvas.width / 2, offCanvas.height / 2 - 200);
+        offCtx.font = 'bold 224px "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif';
+        offCtx.fillText(dateText, offCanvas.width / 2, offCanvas.height / 2 - 160);
 
         // 2行目: 時刻
-        offCtx.font = 'bold 340px "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif';
-        offCtx.fillText(timeText, offCanvas.width / 2, offCanvas.height / 2 + 200);
+        offCtx.font = 'bold 272px "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif';
+        offCtx.fillText(timeText, offCanvas.width / 2, offCanvas.height / 2 + 160);
 
         // ピクセルデータを読み取り、座標を抽出
         const imageData = offCtx.getImageData(0, 0, offCanvas.width, offCanvas.height);
@@ -1335,6 +1335,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let particleStartTime = null;
     let particleAnimationId = null;
     let isParticleAnimating = false;
+    let lastFrameTime = 0;
+    const FRAME_INTERVAL = 1000 / 30; // 30fps制限
     
     function resetParticleAnimation() {
         particleStartTime = Date.now();
@@ -1366,15 +1368,24 @@ document.addEventListener('DOMContentLoaded', () => {
     function animateParticles() {
         if (!isParticleAnimating) return; // 停止フラグが立っていたら終了
 
-        if (!particleStartTime) particleStartTime = Date.now();
+        particleAnimationId = requestAnimationFrame(animateParticles);
 
         const now = Date.now();
+
+        // 30fps制限: 前回描画から十分な時間が経っていなければスキップ
+        if (now - lastFrameTime < FRAME_INTERVAL) return;
+        lastFrameTime = now;
+
+        if (!particleStartTime) particleStartTime = now;
+
         const elapsed = now - particleStartTime;
 
         // アニメーション終了（ループせず1回きり）
         if (elapsed >= LOOP_DURATION) {
             particleCtx.fillStyle = '#000000';
             particleCtx.fillRect(0, 0, particleCanvas.width, particleCanvas.height);
+            cancelAnimationFrame(particleAnimationId);
+            particleAnimationId = null;
             return;
         }
 
@@ -1387,8 +1398,6 @@ document.addEventListener('DOMContentLoaded', () => {
             p.update(elapsed);
             p.draw(particleCtx);
         });
-
-        particleAnimationId = requestAnimationFrame(animateParticles);
     }
 
     // ========== ファミコン風ロゴアニメーション ==========
