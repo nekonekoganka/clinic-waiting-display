@@ -14,7 +14,7 @@
 ## ディレクトリ構造
 
 ```
-├── 待合室患者情報提供ディスプレイ.html  # メインHTML（9種類の画面定義）
+├── 待合室患者情報提供ディスプレイ.html  # メインHTML（10種類の画面定義）
 ├── css/style.css                        # スタイルシート
 ├── js/main.js                           # メインロジック
 ├── images/                              # スライドショー画像
@@ -36,18 +36,20 @@
 6. **時計** - 現在時刻と日付
 7. **天気予報** - 気象庁APIから3日分取得
 8. **紫外線情報** - UVインデックス表示
-9. **多言語グリッド** - 18言語でクリニック名表示
+9. **日光浴おすすめ** - 月・天気・時間帯に応じた推奨日光浴時間（埼玉県ビタミンD生成データ基準）
+10. **多言語グリッド** - 18言語でクリニック名表示
 
 ### 画面ローテーション
 ```
-基本画面 → スライドショー → CM → 後半固定画面 → ループ（2時間で自動リロード）
+基本画面(メイン→花粉アラート→対策) → [開始CM] → スライドショー(CM挿入あり)
+→ 後半固定画面(時計→天気→紫外線→日光浴→多言語) → ループ（2時間で自動リロード）
 ```
 
 ## 設定ファイル
 
 ### settings.json
 - `screens`: 各画面の表示時間（秒）
-- `cm.animations[]`: CM設定（type: "animation" | "video"）
+- `cm.animations[]`: CM設定（type: "animation" | "video" | "main"）
 - `cm.animations[].followedBy`: CM後に挿入する追加画面
 
 ### images/config.json
@@ -72,17 +74,20 @@
 ## コード構成 (js/main.js)
 
 ### 主要オブジェクト
-- `CONFIG`: 表示時間、アニメーション設定
+- `CONFIG.durations`: 画面表示時間（ms）- main, alert, tips, clock, weather, weatherError, uv, sunExposure, multilang, billiard, logo, famicom, slideshowDefault
 - `pollenData`: 花粉種類と月別飛散データ
 - `weatherData`: 気象庁APIから取得した天気データ
 
 ### 主要関数
-- `startRotation()`: 画面ローテーション開始
+- `buildScreensList()`: 画面リスト構築（async、設定とスライドショー画像から動的生成）
+- `rotateScreens()`: 画面ローテーション実行
 - `showNextScreen()`: 次の画面表示
-- `playCM()`: CM再生（アニメーション/動画）
+- `playCM()`: CM再生（アニメーション/動画、preload+canplaythrough対応）
 - `fetchWeatherData()`: 気象庁API呼び出し
+- `calculateSunExposure()`: 推奨日光浴時間を計算（月・天気・時間帯）
+- `updateSunExposureScreen()`: 日光浴おすすめ画面更新
 - `startBilliardAnimation()`: ビリヤードロゴアニメーション
-- `startParticleAnimation()`: パーティクルアニメーション
+- `startParticleAnimation()`: パーティクルアニメーション（日時表示フェーズあり）
 - `startFamicomAnimation()`: ファミコン風アニメーション
 
 ## 注意事項
