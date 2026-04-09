@@ -501,7 +501,7 @@ td { padding: clamp(3px, 0.5vh, 8px); border: 1px solid var(--border-color); tex
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: clamp(20px, 3vh, 40px) clamp(30px, 3vw, 50px);
+    padding: clamp(70px, calc(3vh + 50px), 90px) clamp(60px, 7vw, 120px);
     box-sizing: border-box;
     color: white;
 }
